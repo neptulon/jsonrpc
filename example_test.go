@@ -1,4 +1,4 @@
-package neptulon_test
+package jsonrpc_test
 
 const debug = false
 
