@@ -2,7 +2,7 @@ package jsonrpc_test
 
 const debug = false
 
-// Example demonstrating the Devastator server.
+// Example demonstrating the Titan server.
 func Example() {
 
 	// ** Output: Server started
