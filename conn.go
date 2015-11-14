@@ -7,25 +7,25 @@ import (
 	"github.com/neptulon/neptulon"
 )
 
-// Client is a client implementation for JSON-RPC 2.0 protocol for Neptulon framework.
-// Client implementations in other programming languages might be provided in separate repositories so check the documentation.
-type Client struct {
+// Conn is a client connection for JSON-RPC 2.0 protocol for Neptulon framework.
+// Conn implementations in other programming languages might be provided in separate repositories so check the documentation.
+type Conn struct {
 	conn *neptulon.Conn
 }
 
 // Dial creates a new client connection to a given network address with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.
-func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Client, error) {
+func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
 	c, err := neptulon.Dial(addr, ca, clientCert, clientCertKey, debug)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{conn: c}, nil
+	return &Conn{conn: c}, nil
 }
 
 // SetReadDeadline set the read deadline for the connection in seconds.
-func (c *Client) SetReadDeadline(seconds int) {
+func (c *Conn) SetReadDeadline(seconds int) {
 	c.conn.SetReadDeadline(seconds)
 }
 
@@ -33,7 +33,7 @@ func (c *Client) SetReadDeadline(seconds int) {
 // Optionally, you can pass in a data structure that the returned JSON-RPC response result data will be serialized into (same for request params).
 // Otherwise json.Unmarshal defaults apply.
 // This function blocks until a message is read from the connection or connection timeout occurs.
-func (c *Client) ReadMsg(resultData interface{}, paramsData interface{}) (req *Request, res *Response, not *Notification, err error) {
+func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Request, res *Response, not *Notification, err error) {
 	var data []byte
 	if data, err = c.conn.Read(); err != nil {
 		return
@@ -94,7 +94,7 @@ func (c *Client) ReadMsg(resultData interface{}, paramsData interface{}) (req *R
 }
 
 // WriteRequest writes a JSON-RPC request message to a client connection with structured params object and auto generated request ID.
-func (c *Client) WriteRequest(method string, params interface{}) (reqID string, err error) {
+func (c *Conn) WriteRequest(method string, params interface{}) (reqID string, err error) {
 	id, err := neptulon.GenID()
 	if err != nil {
 		return "", err
@@ -104,27 +104,27 @@ func (c *Client) WriteRequest(method string, params interface{}) (reqID string, 
 }
 
 // WriteRequestArr writes a JSON-RPC request message to a client connection with array params and auto generated request ID.
-func (c *Client) WriteRequestArr(method string, params ...interface{}) (reqID string, err error) {
+func (c *Conn) WriteRequestArr(method string, params ...interface{}) (reqID string, err error) {
 	return c.WriteRequest(method, params)
 }
 
 // WriteNotification writes a JSON-RPC notification message to a client connection with structured params object.
-func (c *Client) WriteNotification(method string, params interface{}) error {
+func (c *Conn) WriteNotification(method string, params interface{}) error {
 	return c.WriteMsg(Notification{Method: method, Params: params})
 }
 
 // WriteNotificationArr writes a JSON-RPC notification message to a client connection with array params.
-func (c *Client) WriteNotificationArr(method string, params ...interface{}) error {
+func (c *Conn) WriteNotificationArr(method string, params ...interface{}) error {
 	return c.WriteNotification(method, params)
 }
 
 // WriteResponse writes a JSON-RPC response message to a client connection.
-func (c *Client) WriteResponse(id string, result interface{}, err *ResError) error {
+func (c *Conn) WriteResponse(id string, result interface{}, err *ResError) error {
 	return c.WriteMsg(Response{ID: id, Result: result, Error: err})
 }
 
 // WriteMsg writes any JSON-RPC message to a client connection.
-func (c *Client) WriteMsg(msg interface{}) error {
+func (c *Conn) WriteMsg(msg interface{}) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -138,6 +138,6 @@ func (c *Client) WriteMsg(msg interface{}) error {
 }
 
 // Close closes a client connection.
-func (c *Client) Close() error {
+func (c *Conn) Close() error {
 	return c.conn.Close()
 }
