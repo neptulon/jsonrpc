@@ -7,13 +7,13 @@ import (
 	"github.com/neptulon/neptulon"
 )
 
-// Conn is a client connection for JSON-RPC 2.0 protocol for Neptulon framework.
-// Conn implementations in other programming languages might be provided in separate repositories so check the documentation.
+// Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
 	conn *neptulon.Conn
 }
 
-// Dial creates a new client connection to a given network address with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
+// Dial creates a new client side connection to a server at the given network address,
+// with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.
 func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
 	c, err := neptulon.Dial(addr, ca, clientCert, clientCertKey, debug)
