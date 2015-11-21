@@ -5,6 +5,10 @@ import (
 	"log"
 )
 
+/*
+ * Context object definitions for Request, Response, and Notification middleware.
+ */
+
 // ReqCtx encapsulates connection, request, and reponse objects.
 type ReqCtx struct {
 	Conn *Conn
