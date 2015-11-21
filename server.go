@@ -69,7 +69,7 @@ func (s *Server) neptulonMiddleware(conn *neptulon.Conn, msg []byte) []byte {
 	if m.ID != "" {
 		// if incoming message is a request
 		if m.Method != "" {
-			ctx := ReqCtx{Conn: conn, id: m.ID, method: m.Method, params: m.Params}
+			ctx := ReqCtx{Conn: NewConn(conn), id: m.ID, method: m.Method, params: m.Params}
 			for _, mid := range s.reqMiddleware {
 				mid(&ctx)
 				if ctx.Done || ctx.Res != nil || ctx.Err != nil {
@@ -90,7 +90,7 @@ func (s *Server) neptulonMiddleware(conn *neptulon.Conn, msg []byte) []byte {
 		}
 
 		// if incoming message is a response
-		ctx := ResCtx{Conn: conn, id: m.ID, result: m.Result, err: m.Error}
+		ctx := ResCtx{Conn: NewConn(conn), id: m.ID, result: m.Result, err: m.Error}
 		for _, mid := range s.resMiddleware {
 			mid(&ctx)
 			if ctx.Done {
@@ -103,7 +103,7 @@ func (s *Server) neptulonMiddleware(conn *neptulon.Conn, msg []byte) []byte {
 
 	// if incoming message is a notification
 	if m.Method != "" {
-		ctx := NotCtx{Conn: conn, method: m.Method, params: m.Params}
+		ctx := NotCtx{Conn: NewConn(conn), method: m.Method, params: m.Params}
 		for _, mid := range s.notMiddleware {
 			mid(&ctx)
 			if ctx.Done {

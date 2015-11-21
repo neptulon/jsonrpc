@@ -12,6 +12,11 @@ type Conn struct {
 	conn *neptulon.Conn
 }
 
+// NewConn creates a new Conn object which wraps the given neptulon.Conn object.
+func NewConn(conn *neptulon.Conn) *Conn {
+	return &Conn{conn: conn}
+}
+
 // Dial creates a new client side connection to a server at the given network address,
 // with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.

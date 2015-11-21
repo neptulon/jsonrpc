@@ -3,13 +3,11 @@ package jsonrpc
 import (
 	"encoding/json"
 	"log"
-
-	"github.com/neptulon/neptulon"
 )
 
 // ReqCtx encapsulates connection, request, and reponse objects.
 type ReqCtx struct {
-	Conn *neptulon.Conn
+	Conn *Conn
 	Res  interface{} // Response to be returned
 	Err  *ResError   // Error to be returned
 	Done bool        // If set, this will prevent further middleware from handling the request
@@ -33,7 +31,7 @@ func (r *ReqCtx) Params(v interface{}) {
 
 // NotCtx encapsulates connection and notification objects.
 type NotCtx struct {
-	Conn *neptulon.Conn
+	Conn *Conn
 	Done bool // If set, this will prevent further middleware from handling the request
 
 	method string          // called method
@@ -54,7 +52,7 @@ func (r *NotCtx) Params(v interface{}) {
 
 // ResCtx encapsulates connection and response objects.
 type ResCtx struct {
-	Conn *neptulon.Conn
+	Conn *Conn
 	Done bool // if set, this will prevent further middleware from handling the request
 
 	id     string          // message ID
