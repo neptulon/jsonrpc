@@ -9,11 +9,11 @@ import (
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	conn *neptulon.Conn
+	conn neptulon.Conn
 }
 
 // NewConn creates a new Conn object which wraps the given neptulon.Conn object.
-func NewConn(conn *neptulon.Conn) *Conn {
+func NewConn(conn neptulon.Conn) *Conn {
 	return &Conn{conn: conn}
 }
 

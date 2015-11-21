@@ -59,7 +59,7 @@ func (s *Server) send(connID string, msg interface{}) error {
 	return nil
 }
 
-func (s *Server) neptulonMiddleware(conn *neptulon.Conn, msg []byte) []byte {
+func (s *Server) neptulonMiddleware(conn neptulon.Conn, msg []byte) []byte {
 	var m message
 	if err := json.Unmarshal(msg, &m); err != nil {
 		log.Fatalln("Cannot deserialize incoming message:", err)
