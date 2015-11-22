@@ -19,6 +19,9 @@ type ReqCtx struct {
 	id     string          // message ID
 	method string          // called method
 	params json.RawMessage // request parameters
+
+	m []func(ctx *ReqCtx)
+	i int
 }
 
 // Params reads request parameters into given object.
