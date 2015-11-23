@@ -69,7 +69,7 @@ func (s *Server) neptulonMiddleware(ctx *neptulon.Ctx) {
 	if m.ID != "" {
 		// if incoming message is a request
 		if m.Method != "" {
-			rctx := ReqCtx{Conn: NewConn(ctx.Conn), id: m.ID, method: m.Method, params: m.Params}
+			rctx := ReqCtx{m: s.reqMiddleware, Conn: NewConn(ctx.Conn), id: m.ID, method: m.Method, params: m.Params}
 			for _, mid := range s.reqMiddleware {
 				mid(&rctx)
 				if rctx.Done || rctx.Res != nil || rctx.Err != nil {
