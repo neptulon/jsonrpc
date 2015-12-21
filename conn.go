@@ -4,25 +4,26 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/neptulon/neptulon"
+	"github.com/neptulon/client"
+	"github.com/neptulon/shortid"
 )
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	conn neptulon.Conn
+	conn *client.Client
 }
 
-// NewConn creates a new Conn object which wraps the given neptulon.Conn object.
-func NewConn(conn neptulon.Conn) *Conn {
-	return &Conn{conn: conn}
+// NewConn creates a new Conn object which wraps the given *client.Conn object.
+func NewConn(conn *client.Conn) *Conn {
+	return nil
 }
 
 // Dial creates a new client side connection to a server at the given network address,
 // with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.
 func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
-	c, err := neptulon.Dial(addr, ca, clientCert, clientCertKey, debug)
-	if err != nil {
+	c := client.NewClient(nil, nil)
+	if err := c.ConnectTLS(addr, ca, clientCert, clientCertKey, debug); err != nil {
 		return nil, err
 	}
 
@@ -40,7 +41,7 @@ func (c *Conn) SetReadDeadline(seconds int) {
 // This function blocks until a message is read from the connection or connection timeout occurs.
 func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Request, res *Response, not *Notification, err error) {
 	var data []byte
-	if data, err = c.conn.Read(); err != nil {
+	if data, err = c.conn.Conn.Read(); err != nil {
 		return
 	}
 
@@ -100,7 +101,7 @@ func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Req
 
 // WriteRequest writes a JSON-RPC request message to a client connection with structured params object and auto generated request ID.
 func (c *Conn) WriteRequest(method string, params interface{}) (reqID string, err error) {
-	id, err := neptulon.GenID()
+	id, err := shortid.UUID()
 	if err != nil {
 		return "", err
 	}
@@ -135,7 +136,7 @@ func (c *Conn) WriteMsg(msg interface{}) error {
 		return err
 	}
 
-	if err := c.conn.Write(data); err != nil {
+	if err := c.conn.Send(data); err != nil {
 		return err
 	}
 

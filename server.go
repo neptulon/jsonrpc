@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/neptulon/client"
 	"github.com/neptulon/neptulon"
 )
 
@@ -25,7 +26,7 @@ func NewServer(s *neptulon.Server) (*Server, error) {
 	}
 
 	rpc := Server{neptulon: s}
-	s.Middleware(rpc.neptulonMiddleware)
+	s.MiddlewareIn(rpc.neptulonMiddleware)
 	return &rpc, nil
 }
 
@@ -59,7 +60,7 @@ func (s *Server) send(connID string, msg interface{}) error {
 	return nil
 }
 
-func (s *Server) neptulonMiddleware(ctx *neptulon.Ctx) {
+func (s *Server) neptulonMiddleware(ctx *client.Ctx) {
 	var m message
 	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
 		log.Fatalln("Cannot deserialize incoming message:", err)
