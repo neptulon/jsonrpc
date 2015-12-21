@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/neptulon/cmap"
-	"github.com/neptulon/neptulon"
+	"github.com/neptulon/shortid"
 )
 
 // Router is a JSON-RPC message routing middleware.
@@ -47,7 +47,7 @@ func (r *Router) Notification(route string, handler func(ctx *NotCtx)) {
 // SendRequest sends a JSON-RPC request throught the connection denoted by the connection ID.
 // resHandler is called when a response is returned.
 func (r *Router) SendRequest(connID string, method string, params interface{}, resHandler func(ctx *ResCtx)) error {
-	id, err := neptulon.GenID()
+	id, err := shortid.UUID()
 	if err != nil {
 		return err
 	}
