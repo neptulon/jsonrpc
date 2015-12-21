@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/neptulon/client"
+	nclient "github.com/neptulon/client"
 	"github.com/neptulon/shortid"
 )
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	conn *client.Client
+	conn *nclient.Client
 }
 
-// NewConn creates a new Conn object which wraps the given *client.Conn object.
-func NewConn(conn *client.Conn) *Conn {
+// NewConn creates a new Conn object which wraps the given *nclient.Conn object.
+func NewConn(conn *nclient.Conn) *Conn {
 	return nil
 }
 
@@ -22,7 +22,7 @@ func NewConn(conn *client.Conn) *Conn {
 // with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.
 func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
-	c := client.NewClient(nil, nil)
+	c := nclient.NewClient(nil, nil)
 	if err := c.ConnectTLS(addr, ca, clientCert, clientCertKey, debug); err != nil {
 		return nil, err
 	}

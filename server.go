@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/neptulon/client"
+	nclient "github.com/neptulon/client"
 	"github.com/neptulon/neptulon"
 )
 
@@ -60,7 +60,7 @@ func (s *Server) send(connID string, msg interface{}) error {
 	return nil
 }
 
-func (s *Server) neptulonMiddleware(ctx *client.Ctx) {
+func (s *Server) neptulonMiddleware(ctx *nclient.Ctx) {
 	var m message
 	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
 		log.Fatalln("Cannot deserialize incoming message:", err)
