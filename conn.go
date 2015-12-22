@@ -10,7 +10,7 @@ import (
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	conn *nclient.Client
+	conn *nclient.Conn
 }
 
 // NewConn creates a new Conn object which wraps the given *nclient.Conn object.
@@ -27,7 +27,7 @@ func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug
 		return nil, err
 	}
 
-	return &Conn{conn: c}, nil
+	return &Conn{conn: c.Conn}, nil
 }
 
 // SetReadDeadline set the read deadline for the connection in seconds.
@@ -41,7 +41,7 @@ func (c *Conn) SetReadDeadline(seconds int) {
 // This function blocks until a message is read from the connection or connection timeout occurs.
 func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Request, res *Response, not *Notification, err error) {
 	var data []byte
-	if data, err = c.conn.Conn.Read(); err != nil {
+	if data, err = c.conn.Read(); err != nil {
 		return
 	}
 
@@ -136,7 +136,7 @@ func (c *Conn) WriteMsg(msg interface{}) error {
 		return err
 	}
 
-	if err := c.conn.Send(data); err != nil {
+	if err := c.conn.Write(data); err != nil {
 		return err
 	}
 

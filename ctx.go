@@ -37,17 +37,17 @@ func (c *ReqCtx) Params(v interface{}) {
 }
 
 // Next executes the next middleware in the middleware stack.
-func (c *ReqCtx) Next() {
-	c.mi++
-
-	if c.mi <= len(c.m) {
-		c.m[c.mi-1](c)
-	} else if c.Res != nil {
-		// if err := c.Conn.conn.Send(c.Res); err != nil {
-		// 	log.Fatalln("Errored while writing response to connection:", err)
-		// }
-	}
-}
+// func (c *ReqCtx) Next() {
+// 	c.mi++
+//
+// 	if c.mi <= len(c.m) {
+// 		c.m[c.mi-1](c)
+// 	} else if c.Res != nil {
+// 		if err := c.Conn.Write(c.Res); err != nil {
+// 			log.Fatalln("Errored while writing response to connection:", err)
+// 		}
+// 	}
+// }
 
 // NotCtx encapsulates connection and notification objects.
 type NotCtx struct {
