@@ -5,17 +5,20 @@ import (
 	"errors"
 
 	nclient "github.com/neptulon/client"
+	"github.com/neptulon/cmap"
 	"github.com/neptulon/shortid"
 )
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	conn *nclient.Conn
+	conn    *nclient.Conn
+	connID  string
+	session *cmap.CMap
 }
 
-// NewConn creates a new Conn object which wraps the given *nclient.Conn object.
-func NewConn(conn *nclient.Conn) *Conn {
-	return nil
+// NewConn creates a new Conn object which wraps the given *nclient.Client object.
+func NewConn(client *nclient.Client) *Conn {
+	return &Conn{conn: client.Conn, connID: client.ConnID(), session: client.Session()}
 }
 
 // Dial creates a new client side connection to a server at the given network address,
@@ -33,6 +36,16 @@ func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug
 // SetReadDeadline set the read deadline for the connection in seconds.
 func (c *Conn) SetReadDeadline(seconds int) {
 	c.conn.SetReadDeadline(seconds)
+}
+
+// ConnID is a randomly generated unique client connection ID.
+func (c *Conn) ConnID() string {
+	return c.connID
+}
+
+// Session is a thread-safe data store for storing arbitrary data for this connection session.
+func (c *Conn) Session() *cmap.CMap {
+	return c.session
 }
 
 // ReadMsg reads a message off of a client connection and returns a request, response, or notification message depending on what server sent.
