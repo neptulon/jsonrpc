@@ -11,14 +11,14 @@ import (
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	conn    *nclient.Conn
+	Conn    *nclient.Conn
 	connID  string
 	session *cmap.CMap
 }
 
 // NewConn creates a new Conn object which wraps the given *nclient.Client object.
 func NewConn(client *nclient.Client) *Conn {
-	return &Conn{conn: client.Conn, connID: client.ConnID(), session: client.Session()}
+	return &Conn{Conn: client.Conn, connID: client.ConnID(), session: client.Session()}
 }
 
 // Dial creates a new client side connection to a server at the given network address,
@@ -30,12 +30,12 @@ func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug
 		return nil, err
 	}
 
-	return &Conn{conn: c.Conn}, nil
+	return &Conn{Conn: c.Conn}, nil
 }
 
 // SetReadDeadline set the read deadline for the connection in seconds.
 func (c *Conn) SetReadDeadline(seconds int) {
-	c.conn.SetReadDeadline(seconds)
+	c.Conn.SetReadDeadline(seconds)
 }
 
 // ConnID is a randomly generated unique client connection ID.
@@ -54,7 +54,7 @@ func (c *Conn) Session() *cmap.CMap {
 // This function blocks until a message is read from the connection or connection timeout occurs.
 func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Request, res *Response, not *Notification, err error) {
 	var data []byte
-	if data, err = c.conn.Read(); err != nil {
+	if data, err = c.Conn.Read(); err != nil {
 		return
 	}
 
@@ -149,7 +149,7 @@ func (c *Conn) WriteMsg(msg interface{}) error {
 		return err
 	}
 
-	if err := c.conn.Write(data); err != nil {
+	if err := c.Conn.Write(data); err != nil {
 		return err
 	}
 
@@ -158,5 +158,5 @@ func (c *Conn) WriteMsg(msg interface{}) error {
 
 // Close closes a client connection.
 func (c *Conn) Close() error {
-	return c.conn.Close()
+	return c.Conn.Close()
 }
