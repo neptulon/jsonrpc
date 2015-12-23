@@ -4,29 +4,48 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/neptulon/neptulon"
+	nclient "github.com/neptulon/client"
+	"github.com/neptulon/cmap"
+	"github.com/neptulon/shortid"
 )
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	conn *neptulon.Conn
+	Conn    *nclient.Conn
+	connID  string
+	session *cmap.CMap
+}
+
+// NewConn creates a new Conn object which wraps the given *nclient.Client object.
+func NewConn(client *nclient.Client) *Conn {
+	return &Conn{Conn: client.Conn, connID: client.ConnID(), session: client.Session()}
 }
 
 // Dial creates a new client side connection to a server at the given network address,
 // with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.
 func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
-	c, err := neptulon.Dial(addr, ca, clientCert, clientCertKey, debug)
-	if err != nil {
+	c := nclient.NewClient(nil, nil).DisableRead()
+	if err := c.ConnectTLS(addr, ca, clientCert, clientCertKey, debug); err != nil {
 		return nil, err
 	}
 
-	return &Conn{conn: c}, nil
+	return &Conn{Conn: c.Conn}, nil
 }
 
 // SetReadDeadline set the read deadline for the connection in seconds.
 func (c *Conn) SetReadDeadline(seconds int) {
-	c.conn.SetReadDeadline(seconds)
+	c.Conn.SetReadDeadline(seconds)
+}
+
+// ConnID is a randomly generated unique client connection ID.
+func (c *Conn) ConnID() string {
+	return c.connID
+}
+
+// Session is a thread-safe data store for storing arbitrary data for this connection session.
+func (c *Conn) Session() *cmap.CMap {
+	return c.session
 }
 
 // ReadMsg reads a message off of a client connection and returns a request, response, or notification message depending on what server sent.
@@ -35,7 +54,7 @@ func (c *Conn) SetReadDeadline(seconds int) {
 // This function blocks until a message is read from the connection or connection timeout occurs.
 func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Request, res *Response, not *Notification, err error) {
 	var data []byte
-	if data, err = c.conn.Read(); err != nil {
+	if data, err = c.Conn.Read(); err != nil {
 		return
 	}
 
@@ -95,7 +114,7 @@ func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Req
 
 // WriteRequest writes a JSON-RPC request message to a client connection with structured params object and auto generated request ID.
 func (c *Conn) WriteRequest(method string, params interface{}) (reqID string, err error) {
-	id, err := neptulon.GenID()
+	id, err := shortid.UUID()
 	if err != nil {
 		return "", err
 	}
@@ -130,7 +149,7 @@ func (c *Conn) WriteMsg(msg interface{}) error {
 		return err
 	}
 
-	if err := c.conn.Write(data); err != nil {
+	if err := c.Conn.Write(data); err != nil {
 		return err
 	}
 
@@ -139,5 +158,5 @@ func (c *Conn) WriteMsg(msg interface{}) error {
 
 // Close closes a client connection.
 func (c *Conn) Close() error {
-	return c.conn.Close()
+	return c.Conn.Close()
 }

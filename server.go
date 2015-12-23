@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	nclient "github.com/neptulon/client"
 	"github.com/neptulon/neptulon"
 )
 
@@ -25,7 +26,7 @@ func NewServer(s *neptulon.Server) (*Server, error) {
 	}
 
 	rpc := Server{neptulon: s}
-	s.Middleware(rpc.neptulonMiddleware)
+	s.MiddlewareIn(rpc.neptulonMiddleware)
 	return &rpc, nil
 }
 
@@ -59,9 +60,9 @@ func (s *Server) send(connID string, msg interface{}) error {
 	return nil
 }
 
-func (s *Server) neptulonMiddleware(conn *neptulon.Conn, msg []byte) []byte {
+func (s *Server) neptulonMiddleware(ctx *nclient.Ctx) {
 	var m message
-	if err := json.Unmarshal(msg, &m); err != nil {
+	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
 		log.Fatalln("Cannot deserialize incoming message:", err)
 	}
 
@@ -69,49 +70,50 @@ func (s *Server) neptulonMiddleware(conn *neptulon.Conn, msg []byte) []byte {
 	if m.ID != "" {
 		// if incoming message is a request
 		if m.Method != "" {
-			ctx := ReqCtx{Conn: conn, id: m.ID, method: m.Method, params: m.Params}
+			rctx := ReqCtx{m: s.reqMiddleware, Conn: NewConn(ctx.Client), id: m.ID, method: m.Method, params: m.Params}
 			for _, mid := range s.reqMiddleware {
-				mid(&ctx)
-				if ctx.Done || ctx.Res != nil || ctx.Err != nil {
+				mid(&rctx)
+				if rctx.Done || rctx.Res != nil || rctx.Err != nil {
 					break
 				}
 			}
 
-			if ctx.Res != nil || ctx.Err != nil {
-				data, err := json.Marshal(Response{ID: m.ID, Result: ctx.Res, Error: ctx.Err})
+			if rctx.Res != nil || rctx.Err != nil {
+				data, err := json.Marshal(Response{ID: m.ID, Result: rctx.Res, Error: rctx.Err})
 				if err != nil {
 					log.Fatalln("Errored while serializing JSON-RPC response:", err)
 				}
 
-				return data
+				ctx.Client.Send(data)
+				return
 			}
 
-			return nil
+			return
 		}
 
 		// if incoming message is a response
-		ctx := ResCtx{Conn: conn, id: m.ID, result: m.Result, err: m.Error}
+		rctx := ResCtx{Conn: NewConn(ctx.Client), id: m.ID, result: m.Result, err: m.Error}
 		for _, mid := range s.resMiddleware {
-			mid(&ctx)
-			if ctx.Done {
+			mid(&rctx)
+			if rctx.Done {
 				break
 			}
 		}
 
-		return nil
+		return
 	}
 
 	// if incoming message is a notification
 	if m.Method != "" {
-		ctx := NotCtx{Conn: conn, method: m.Method, params: m.Params}
+		rctx := NotCtx{Conn: NewConn(ctx.Client), method: m.Method, params: m.Params}
 		for _, mid := range s.notMiddleware {
-			mid(&ctx)
-			if ctx.Done {
+			mid(&rctx)
+			if rctx.Done {
 				break
 			}
 		}
 
-		return nil
+		return
 	}
 
 	// if incoming message is none of the above
@@ -120,6 +122,9 @@ func (s *Server) neptulonMiddleware(conn *neptulon.Conn, msg []byte) []byte {
 		log.Fatalln("Errored while serializing JSON-RPC response:", err)
 	}
 
-	return data
+	ctx.Client.Send(data)
+	return
+
 	// todo: close conn
+
 }
