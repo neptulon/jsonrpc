@@ -25,7 +25,7 @@ func NewConn(client *nclient.Client) *Conn {
 // with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.
 func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
-	c := nclient.NewClient(nil, nil)
+	c := nclient.NewClient(nil, nil).DisableRead()
 	if err := c.ConnectTLS(addr, ca, clientCert, clientCertKey, debug); err != nil {
 		return nil, err
 	}
