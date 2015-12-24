@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"log"
 
-	nclient "github.com/neptulon/client"
 	"github.com/neptulon/neptulon"
+	"github.com/neptulon/neptulon/client"
 )
 
 // Server is a Neptulon JSON-RPC server.
@@ -60,7 +60,7 @@ func (s *Server) send(connID string, msg interface{}) error {
 	return nil
 }
 
-func (s *Server) neptulonMiddleware(ctx *nclient.Ctx) {
+func (s *Server) neptulonMiddleware(ctx *client.Ctx) error {
 	var m message
 	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
 		log.Fatalln("Cannot deserialize incoming message:", err)
@@ -84,11 +84,10 @@ func (s *Server) neptulonMiddleware(ctx *nclient.Ctx) {
 					log.Fatalln("Errored while serializing JSON-RPC response:", err)
 				}
 
-				ctx.Client.Send(data)
-				return
+				return ctx.Client.Send(data)
 			}
 
-			return
+			return nil
 		}
 
 		// if incoming message is a response
@@ -100,7 +99,7 @@ func (s *Server) neptulonMiddleware(ctx *nclient.Ctx) {
 			}
 		}
 
-		return
+		return nil
 	}
 
 	// if incoming message is a notification
@@ -113,7 +112,7 @@ func (s *Server) neptulonMiddleware(ctx *nclient.Ctx) {
 			}
 		}
 
-		return
+		return nil
 	}
 
 	// if incoming message is none of the above
@@ -122,8 +121,7 @@ func (s *Server) neptulonMiddleware(ctx *nclient.Ctx) {
 		log.Fatalln("Errored while serializing JSON-RPC response:", err)
 	}
 
-	ctx.Client.Send(data)
-	return
+	return ctx.Client.Send(data)
 
 	// todo: close conn
 

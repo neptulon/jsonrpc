@@ -4,20 +4,20 @@ import (
 	"encoding/json"
 	"errors"
 
-	nclient "github.com/neptulon/client"
 	"github.com/neptulon/cmap"
+	"github.com/neptulon/neptulon/client"
 	"github.com/neptulon/shortid"
 )
 
 // Conn is a full-duplex bidirectional client-server connection for JSON-RPC 2.0 protocol for Neptulon framework.
 type Conn struct {
-	Conn    *nclient.Conn
+	Conn    *client.Conn
 	connID  string
 	session *cmap.CMap
 }
 
 // NewConn creates a new Conn object which wraps the given *nclient.Client object.
-func NewConn(client *nclient.Client) *Conn {
+func NewConn(client *client.Client) *Conn {
 	return &Conn{Conn: client.Conn, connID: client.ConnID(), session: client.Session()}
 }
 
@@ -25,7 +25,7 @@ func NewConn(client *nclient.Client) *Conn {
 // with optional CA and/or a client certificate (PEM encoded X.509 cert/key).
 // Debug mode logs all raw TCP communication.
 func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
-	c := nclient.NewClient(nil, nil).DisableRead()
+	c := client.NewClient(nil, nil)
 	if err := c.ConnectTLS(addr, ca, clientCert, clientCertKey, debug); err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug
 
 // SetReadDeadline set the read deadline for the connection in seconds.
 func (c *Conn) SetReadDeadline(seconds int) {
-	c.Conn.SetReadDeadline(seconds)
+	c.Conn.SetDeadline(seconds)
 }
 
 // ConnID is a randomly generated unique client connection ID.
