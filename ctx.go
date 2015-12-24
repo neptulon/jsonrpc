@@ -49,6 +49,30 @@ func (c *ReqCtx) Params(v interface{}) {
 // 	}
 // }
 
+// func newCtx(msg []byte, conn *Conn, mw []func(ctx *Ctx) error) *Ctx {
+// 	// append the last middleware to stack, which will write the response to connection, if any
+// 	mw = append(mw, func(ctx *Ctx) error {
+// 		if ctx.Res != nil {
+// 			return ctx.client.Send(ctx.Res)
+// 		}
+//
+// 		return nil
+// 	})
+//
+// 	return &Ctx{Msg: msg, Conn: conn, mw: mw, session: cmap.New()}
+// }
+//
+// // Next executes the next middleware in the middleware stack.
+// func (ctx *Ctx) Next() error {
+// 	ctx.mwIndex++
+//
+// 	if ctx.mwIndex <= len(ctx.mw) {
+// 		return ctx.mw[ctx.mwIndex-1](ctx)
+// 	}
+//
+// 	return nil
+// }
+
 // NotCtx encapsulates connection and notification objects.
 type NotCtx struct {
 	Conn *Conn
