@@ -71,3 +71,16 @@ func (c *Client) OutResMiddleware(middleware ...func() error) {
 func (c *Client) SetDeadline(seconds int) {
 	c.client.SetDeadline(seconds)
 }
+
+// UseTLS enables Transport Layer Security for the connection.
+// ca = Optional CA certificate to be used for verifying the server certificate. Useful for using self-signed server certificates.
+// clientCert, clientCertKey = Optional certificate/privat key pair for TLS client certificate authentication.
+// All certificates/private keys are in PEM encoded X.509 format.
+func (c *Client) UseTLS(ca, clientCert, clientCertKey []byte) {
+	c.client.UseTLS(ca, clientCert, clientCertKey)
+}
+
+// Connect connectes to the server at given network address and starts receiving messages.
+func (c *Client) Connect(addr string, debug bool) error {
+	return c.client.Connect(addr, debug)
+}
