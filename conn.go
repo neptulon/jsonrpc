@@ -2,7 +2,6 @@ package jsonrpc
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/neptulon/cmap"
 	"github.com/neptulon/neptulon/client"
@@ -26,7 +25,8 @@ func NewConn(client *client.Client) *Conn {
 // Debug mode logs all raw TCP communication.
 func Dial(addr string, ca []byte, clientCert []byte, clientCertKey []byte, debug bool) (*Conn, error) {
 	c := client.NewClient(nil, nil)
-	if err := c.ConnectTLS(addr, ca, clientCert, clientCertKey, debug); err != nil {
+	c.UseTLS(ca, clientCert, clientCertKey)
+	if err := c.Connect(addr, debug); err != nil {
 		return nil, err
 	}
 
@@ -108,7 +108,7 @@ func (c *Conn) ReadMsg(resultData interface{}, paramsData interface{}) (req *Req
 		not = &Notification{Method: msg.Method, Params: msg.Params}
 	}
 
-	err = errors.New("Received a malformed message.")
+	// not a JSON-RPC message so do nothing
 	return
 }
 

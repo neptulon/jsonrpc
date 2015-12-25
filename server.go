@@ -115,14 +115,6 @@ func (s *Server) neptulonMiddleware(ctx *client.Ctx) error {
 		return nil
 	}
 
-	// if incoming message is none of the above
-	data, err := json.Marshal(Notification{Method: "invalidMessage"})
-	if err != nil {
-		log.Fatalln("Errored while serializing JSON-RPC response:", err)
-	}
-
-	return ctx.Client.Send(data)
-
-	// todo: close conn
-
+	// not a JSON-RPC message so do nothing
+	return nil
 }
