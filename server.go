@@ -14,9 +14,9 @@ import (
 // Server is a Neptulon JSON-RPC server.
 type Server struct {
 	neptulon      *neptulon.Server
-	reqMiddleware []func(ctx *ReqCtx)
-	notMiddleware []func(ctx *NotCtx)
-	resMiddleware []func(ctx *ResCtx)
+	reqMiddleware []func(ctx *ReqCtx) error
+	notMiddleware []func(ctx *NotCtx) error
+	resMiddleware []func(ctx *ResCtx) error
 }
 
 // NewServer creates a Neptulon JSON-RPC server.
@@ -30,23 +30,27 @@ func NewServer(s *neptulon.Server) (*Server, error) {
 	return &rpc, nil
 }
 
-// ReqMiddleware registers a new request middleware to handle incoming requests.
-func (s *Server) ReqMiddleware(reqMiddleware func(ctx *ReqCtx)) {
-	s.reqMiddleware = append(s.reqMiddleware, reqMiddleware)
+// ReqMiddleware registers middleware to handle incoming request messages.
+func (s *Server) ReqMiddleware(reqMiddleware ...func(ctx *ReqCtx) error) {
+	s.reqMiddleware = append(s.reqMiddleware, reqMiddleware...)
 }
 
-// NotMiddleware registers a new notification middleware to handle incoming notifications.
-func (s *Server) NotMiddleware(notMiddleware func(ctx *NotCtx)) {
-	s.notMiddleware = append(s.notMiddleware, notMiddleware)
+// NotMiddleware registers middleware to handle incoming notification messages.
+func (s *Server) NotMiddleware(notMiddleware ...func(ctx *NotCtx) error) {
+	s.notMiddleware = append(s.notMiddleware, notMiddleware...)
 }
 
-// ResMiddleware registers a new response middleware to handle incoming responses.
-func (s *Server) ResMiddleware(resMiddleware func(ctx *ResCtx)) {
-	s.resMiddleware = append(s.resMiddleware, resMiddleware)
+// ResMiddleware registers middleware to handle incoming response messages.
+func (s *Server) ResMiddleware(resMiddleware ...func(ctx *ResCtx) error) {
+	s.resMiddleware = append(s.resMiddleware, resMiddleware...)
 }
 
 // send sends a message throught the connection denoted by the connection ID.
 func (s *Server) send(connID string, msg interface{}) error {
+
+	// ############### todo: pass messages through outgoing message middleware, possibly via generalizing and reusing the neptulonMiddleware
+	// also good for sharing it with the Client
+
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("Errored while serializing JSON-RPC message: %v", err)

@@ -20,7 +20,7 @@ type ReqCtx struct {
 	method string          // called method
 	params json.RawMessage // request parameters
 
-	m  []func(ctx *ReqCtx)
+	m  []func(ctx *ReqCtx) error
 	mi int
 }
 
@@ -81,7 +81,7 @@ type NotCtx struct {
 	method string          // called method
 	params json.RawMessage // notification parameters
 
-	m  []func(ctx *NotCtx)
+	m  []func(ctx *NotCtx) error
 	mi int
 }
 
@@ -107,7 +107,7 @@ type ResCtx struct {
 
 	err *resError // response error (if any)
 
-	m  []func(ctx *ResCtx)
+	m  []func(ctx *ResCtx) error
 	mi int
 }
 
