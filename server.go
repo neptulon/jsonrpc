@@ -11,8 +11,8 @@ import (
 
 // Server is a Neptulon JSON-RPC server.
 type Server struct {
+	Middleware
 	neptulon *neptulon.Server
-	mw       Middleware
 }
 
 // NewServer creates a Neptulon JSON-RPC server.
@@ -22,23 +22,8 @@ func NewServer(s *neptulon.Server) (*Server, error) {
 	}
 
 	rpc := Server{neptulon: s}
-	s.MiddlewareIn(rpc.mw.NeptulonMiddleware)
+	s.MiddlewareIn(rpc.NeptulonMiddleware)
 	return &rpc, nil
-}
-
-// ReqMiddleware registers middleware to handle incoming request messages.
-func (s *Server) ReqMiddleware(reqMiddleware ...func(ctx *ReqCtx) error) {
-	s.mw.ReqMiddleware(reqMiddleware...)
-}
-
-// NotMiddleware registers middleware to handle incoming notification messages.
-func (s *Server) NotMiddleware(notMiddleware ...func(ctx *NotCtx) error) {
-	s.mw.NotMiddleware(notMiddleware...)
-}
-
-// ResMiddleware registers middleware to handle incoming response messages.
-func (s *Server) ResMiddleware(resMiddleware ...func(ctx *ResCtx) error) {
-	s.mw.ResMiddleware(resMiddleware...)
 }
 
 // send sends a message throught the connection denoted by the connection ID.

@@ -7,8 +7,8 @@ import (
 
 // Sender is a JSON-RPC middleware for sending requests and receiving responses.
 type Sender struct {
-	send      func(connID string, msg interface{}) error // todo: Conn or Client instead
-	resRoutes *cmap.CMap                                 // message ID (string) -> handler func(ctx *ResCtx) error : expected responses for requests that we've sent
+	send      func(connID string, msg interface{}) error
+	resRoutes *cmap.CMap // message ID (string) -> handler func(ctx *ResCtx) error : expected responses for requests that we've sent
 }
 
 // NewSender creates a new Sender middleware.
