@@ -14,9 +14,9 @@ import (
 
 // ReqCtx encapsulates connection, request, and reponse objects.
 type ReqCtx struct {
-	Res  interface{} // Response to be returned.
-	Err  *ResError   // Error to be returned.
-	Conn *Conn       // Client connection.
+	Res    interface{} // Response to be returned.
+	Err    *ResError   // Error to be returned.
+	Client *Client     // Client connection.
 
 	id     string          // message ID
 	method string          // called method
@@ -31,13 +31,13 @@ func newReqCtx(id, method string, params json.RawMessage, client *client.Client,
 	// append the last middleware to stack, which will write the response to connection, if any
 	mw = append(mw, func(ctx *ReqCtx) error {
 		if ctx.Res != nil || ctx.Err != nil {
-			return ctx.Conn.WriteResponse(ctx.id, ctx.Res, ctx.Err)
+			return ctx.Client.WriteResponse(ctx.id, ctx.Res, ctx.Err)
 		}
 
 		return nil
 	})
 
-	return &ReqCtx{Conn: NewConn(client), id: id, method: method, params: params, mw: mw}
+	return &ReqCtx{Client: useClient(client), id: id, method: method, params: params, mw: mw}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
@@ -70,7 +70,7 @@ func (ctx *ReqCtx) Next() error {
 
 // NotCtx encapsulates connection and notification objects.
 type NotCtx struct {
-	Conn *Conn
+	Client *Client
 
 	method string          // called method
 	params json.RawMessage // notification parameters
@@ -81,7 +81,7 @@ type NotCtx struct {
 }
 
 func newNotCtx(method string, params json.RawMessage, client *client.Client, mw []func(ctx *NotCtx) error, session *cmap.CMap) *NotCtx {
-	return &NotCtx{Conn: NewConn(client), method: method, params: params, mw: mw}
+	return &NotCtx{Client: useClient(client), method: method, params: params, mw: mw}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
@@ -114,7 +114,7 @@ func (ctx *NotCtx) Next() error {
 
 // ResCtx encapsulates connection and response objects.
 type ResCtx struct {
-	Conn *Conn
+	Client *Client
 
 	id     string          // message ID
 	result json.RawMessage // result parameters
@@ -127,7 +127,7 @@ type ResCtx struct {
 }
 
 func newResCtx(id string, result json.RawMessage, client *client.Client, mw []func(ctx *ResCtx) error, session *cmap.CMap) *ResCtx {
-	return &ResCtx{Conn: NewConn(client), id: id, result: result, mw: mw}
+	return &ResCtx{Client: useClient(client), id: id, result: result, mw: mw}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
