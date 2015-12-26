@@ -47,10 +47,6 @@ func (s *Server) ResMiddleware(resMiddleware ...func(ctx *ResCtx) error) {
 
 // send sends a message throught the connection denoted by the connection ID.
 func (s *Server) send(connID string, msg interface{}) error {
-
-	// ############### todo: pass messages through outgoing message middleware, possibly via generalizing and reusing the neptulonMiddleware
-	// also good for sharing it with the Client
-
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("Errored while serializing JSON-RPC message: %v", err)
@@ -74,22 +70,16 @@ func (s *Server) neptulonMiddleware(ctx *client.Ctx) error {
 	if m.ID != "" {
 		// if incoming message is a request
 		if m.Method != "" {
-			rctx := ReqCtx{m: s.reqMiddleware, Conn: NewConn(ctx.Client), id: m.ID, method: m.Method, params: m.Params}
-			for _, mid := range s.reqMiddleware {
-				mid(&rctx)
-				if rctx.Done || rctx.Res != nil || rctx.Err != nil {
-					break
-				}
-			}
+			rctx := ReqCtx{Conn: NewConn(ctx.Client), id: m.ID, method: m.Method, params: m.Params}
 
-			if rctx.Res != nil || rctx.Err != nil {
-				data, err := json.Marshal(Response{ID: m.ID, Result: rctx.Res, Error: rctx.Err})
-				if err != nil {
-					log.Fatalln("Errored while serializing JSON-RPC response:", err)
+			// append the last middleware to stack, which will write the response to connection, if any
+			rctx.mw = append(s.reqMiddleware, func(resctx *ReqCtx) error {
+				if resctx.Res != nil || resctx.Err != nil {
+					return resctx.Conn.WriteResponse(m.ID, resctx.Res, resctx.Err)
 				}
 
-				return ctx.Client.Send(data)
-			}
+				return nil
+			})
 
 			return nil
 		}

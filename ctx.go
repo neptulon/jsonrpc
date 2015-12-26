@@ -3,6 +3,8 @@ package jsonrpc
 import (
 	"encoding/json"
 	"log"
+
+	"github.com/neptulon/cmap"
 )
 
 /*
@@ -11,43 +13,41 @@ import (
 
 // ReqCtx encapsulates connection, request, and reponse objects.
 type ReqCtx struct {
-	Conn *Conn
 	Res  interface{} // Response to be returned
 	Err  *ResError   // Error to be returned
-	Done bool        // If set, this will prevent further middleware from handling the request
+	Conn *Conn
 
 	id     string          // message ID
 	method string          // called method
 	params json.RawMessage // request parameters
 
-	m  []func(ctx *ReqCtx) error
-	mi int
+	mw      []func(ctx *ReqCtx) error
+	mwIndex int
+	session *cmap.CMap
 }
 
 // Params reads request parameters into given object.
 // Object should be passed by reference.
-func (c *ReqCtx) Params(v interface{}) {
-	if c.params == nil {
+func (ctx *ReqCtx) Params(v interface{}) {
+	if ctx.params == nil {
 		return
 	}
 
-	if err := json.Unmarshal(c.params, v); err != nil {
+	if err := json.Unmarshal(ctx.params, v); err != nil {
 		log.Fatal("Cannot deserialize request params:", err)
 	}
 }
 
 // Next executes the next middleware in the middleware stack.
-// func (c *ReqCtx) Next() {
-// 	c.mi++
-//
-// 	if c.mi <= len(c.m) {
-// 		c.m[c.mi-1](c)
-// 	} else if c.Res != nil {
-// 		if err := c.Conn.Write(c.Res); err != nil {
-// 			log.Fatalln("Errored while writing response to connection:", err)
-// 		}
-// 	}
-// }
+func (ctx *ReqCtx) Next() error {
+	ctx.mwIndex++
+
+	if ctx.mwIndex <= len(ctx.mw) {
+		return ctx.mw[ctx.mwIndex-1](ctx)
+	}
+
+	return nil
+}
 
 // func newCtx(msg []byte, conn *Conn, mw []func(ctx *Ctx) error) *Ctx {
 // 	// append the last middleware to stack, which will write the response to connection, if any
