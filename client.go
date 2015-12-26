@@ -1,8 +1,6 @@
 package jsonrpc
 
 import (
-	"encoding/json"
-	"fmt"
 	"sync"
 
 	"github.com/neptulon/cmap"
@@ -49,35 +47,6 @@ func (c *Client) UseTLS(ca, clientCert, clientCertKey []byte) {
 
 // Connect connectes to the server at given network address and starts receiving messages.
 func (c *Client) Connect(addr string, debug bool) error {
-	c.client.MiddlewareIn(c.neptulonMiddleware)
+	c.client.MiddlewareIn(c.NeptulonMiddleware)
 	return c.client.Connect(addr, debug)
-}
-
-// NeptulonMiddleware handles incoming messages,
-// categorizes the messages as one of the three JSON-RPC message types (if they are so),
-// and triggers relevant middleware.
-func (c *Client) neptulonMiddleware(ctx *client.Ctx) error {
-	var m message
-	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
-		return fmt.Errorf("cannot deserialize incoming message: %v", err)
-	}
-
-	// if incoming message is a request or response
-	if m.ID != "" {
-		// if incoming message is a request
-		if m.Method != "" {
-			return newReqCtx(m.ID, m.Method, m.Params, ctx.Client, c.reqMiddleware, ctx.Session()).Next()
-		}
-
-		// if incoming message is a response
-		return newResCtx(m.ID, m.Result, ctx.Client, c.resMiddleware, ctx.Session()).Next()
-	}
-
-	// if incoming message is a notification
-	if m.Method != "" {
-		return newNotCtx(m.Method, m.Params, ctx.Client, c.notMiddleware, ctx.Session()).Next()
-	}
-
-	// not a JSON-RPC message so do nothing
-	return nil
 }
