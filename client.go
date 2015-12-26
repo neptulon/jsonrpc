@@ -1,6 +1,8 @@
 package jsonrpc
 
 import (
+	"encoding/json"
+	"fmt"
 	"sync"
 
 	"github.com/neptulon/cmap"
@@ -86,61 +88,30 @@ func (c *Client) Connect(addr string, debug bool) error {
 	return c.client.Connect(addr, debug)
 }
 
-// NeptulonMiddleware is a Neptulon middleware to handle incoming raw messages and detect the messages type.
+// NeptulonMiddleware handles incoming messages,
+// categorizes the messages as one of the three JSON-RPC message types (if they are so),
+// and triggers relevant middleware.
 func (c *Client) neptulonMiddleware(ctx *client.Ctx) error {
-	// var m message
-	// if err := json.Unmarshal(ctx.Msg, &m); err != nil {
-	// 	log.Fatalln("Cannot deserialize incoming message:", err)
-	// }
-	//
-	// // if incoming message is a request or response
-	// if m.ID != "" {
-	// 	// if incoming message is a request
-	// 	if m.Method != "" {
-	// 		rctx := ReqCtx{m: s.reqMiddleware, Conn: NewConn(ctx.Client), id: m.ID, method: m.Method, params: m.Params}
-	// 		for _, mid := range s.reqMiddleware {
-	// 			mid(&rctx)
-	// 			if rctx.Done || rctx.Res != nil || rctx.Err != nil {
-	// 				break
-	// 			}
-	// 		}
-	//
-	// 		if rctx.Res != nil || rctx.Err != nil {
-	// 			data, err := json.Marshal(Response{ID: m.ID, Result: rctx.Res, Error: rctx.Err})
-	// 			if err != nil {
-	// 				log.Fatalln("Errored while serializing JSON-RPC response:", err)
-	// 			}
-	//
-	// 			return ctx.Client.Send(data)
-	// 		}
-	//
-	// 		return nil
-	// 	}
-	//
-	// 	// if incoming message is a response
-	// 	rctx := ResCtx{Conn: NewConn(ctx.Client), id: m.ID, result: m.Result, err: m.Error}
-	// 	for _, mid := range s.resMiddleware {
-	// 		mid(&rctx)
-	// 		if rctx.Done {
-	// 			break
-	// 		}
-	// 	}
-	//
-	// 	return nil
-	// }
-	//
-	// // if incoming message is a notification
-	// if m.Method != "" {
-	// 	rctx := NotCtx{Conn: NewConn(ctx.Client), method: m.Method, params: m.Params}
-	// 	for _, mid := range s.notMiddleware {
-	// 		mid(&rctx)
-	// 		if rctx.Done {
-	// 			break
-	// 		}
-	// 	}
-	//
-	// 	return nil
-	// }
+	var m message
+	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
+		return fmt.Errorf("cannot deserialize incoming message: %v", err)
+	}
+
+	// if incoming message is a request or response
+	if m.ID != "" {
+		// if incoming message is a request
+		if m.Method != "" {
+			return newReqCtx(m.ID, m.Method, m.Params, ctx.Client, c.inReqMiddleware, ctx.Session()).Next()
+		}
+
+		// if incoming message is a response
+		return newResCtx(m.ID, m.Result, ctx.Client, c.inResMiddleware, ctx.Session()).Next()
+	}
+
+	// if incoming message is a notification
+	if m.Method != "" {
+		return newNotCtx(m.Method, m.Params, ctx.Client, c.inNotMiddleware, ctx.Session()).Next()
+	}
 
 	// not a JSON-RPC message so do nothing
 	return nil

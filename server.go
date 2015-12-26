@@ -59,7 +59,9 @@ func (s *Server) send(connID string, msg interface{}) error {
 	return nil
 }
 
-// NeptulonMiddleware deserializes incoming messages from Neptulon server and categorizes them as JSON-RPC message types, if any.
+// NeptulonMiddleware handles incoming messages,
+// categorizes the messages as one of the three JSON-RPC message types (if they are so),
+// and triggers relevant middleware.
 func (s *Server) neptulonMiddleware(ctx *client.Ctx) error {
 	var m message
 	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
