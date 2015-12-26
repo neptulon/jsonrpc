@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/neptulon/cmap"
+	"github.com/neptulon/neptulon/client"
 )
 
 /*
@@ -13,8 +14,8 @@ import (
 
 // ReqCtx encapsulates connection, request, and reponse objects.
 type ReqCtx struct {
-	Res  interface{} // Response to be returned
-	Err  *ResError   // Error to be returned
+	Res  interface{} // Response to be returned.
+	Err  *ResError   // Error to be returned.
 	Conn *Conn
 
 	id     string          // message ID
@@ -24,6 +25,19 @@ type ReqCtx struct {
 	mw      []func(ctx *ReqCtx) error
 	mwIndex int
 	session *cmap.CMap
+}
+
+func newReqCtx(id, method string, params json.RawMessage, client *client.Client, mw []func(ctx *ReqCtx) error) *ReqCtx {
+	// append the last middleware to stack, which will write the response to connection, if any
+	mw = append(mw, func(ctx *ReqCtx) error {
+		if ctx.Res != nil || ctx.Err != nil {
+			return ctx.Conn.WriteResponse(ctx.id, ctx.Res, ctx.Err)
+		}
+
+		return nil
+	})
+
+	return &ReqCtx{Conn: NewConn(client), id: id, method: method, params: params, mw: mw}
 }
 
 // Params reads request parameters into given object.
@@ -48,30 +62,6 @@ func (ctx *ReqCtx) Next() error {
 
 	return nil
 }
-
-// func newCtx(msg []byte, conn *Conn, mw []func(ctx *Ctx) error) *Ctx {
-// 	// append the last middleware to stack, which will write the response to connection, if any
-// 	mw = append(mw, func(ctx *Ctx) error {
-// 		if ctx.Res != nil {
-// 			return ctx.client.Send(ctx.Res)
-// 		}
-//
-// 		return nil
-// 	})
-//
-// 	return &Ctx{Msg: msg, Conn: conn, mw: mw, session: cmap.New()}
-// }
-//
-// // Next executes the next middleware in the middleware stack.
-// func (ctx *Ctx) Next() error {
-// 	ctx.mwIndex++
-//
-// 	if ctx.mwIndex <= len(ctx.mw) {
-// 		return ctx.mw[ctx.mwIndex-1](ctx)
-// 	}
-//
-// 	return nil
-// }
 
 // NotCtx encapsulates connection and notification objects.
 type NotCtx struct {

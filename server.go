@@ -70,18 +70,7 @@ func (s *Server) neptulonMiddleware(ctx *client.Ctx) error {
 	if m.ID != "" {
 		// if incoming message is a request
 		if m.Method != "" {
-			rctx := ReqCtx{Conn: NewConn(ctx.Client), id: m.ID, method: m.Method, params: m.Params}
-
-			// append the last middleware to stack, which will write the response to connection, if any
-			rctx.mw = append(s.reqMiddleware, func(resctx *ReqCtx) error {
-				if resctx.Res != nil || resctx.Err != nil {
-					return resctx.Conn.WriteResponse(m.ID, resctx.Res, resctx.Err)
-				}
-
-				return nil
-			})
-
-			return nil
+			newReqCtx(m.ID, m.Method, m.Params, ctx.Client, s.reqMiddleware).Next()
 		}
 
 		// if incoming message is a response
