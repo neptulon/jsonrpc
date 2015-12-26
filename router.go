@@ -76,7 +76,7 @@ func (r *Router) reqMiddleware(ctx *ReqCtx) error {
 
 func (r *Router) notMiddleware(ctx *NotCtx) error {
 	if handler, ok := r.notRoutes[ctx.method]; ok {
-		handler(ctx)
+		return handler(ctx)
 	}
 
 	return nil
@@ -84,8 +84,11 @@ func (r *Router) notMiddleware(ctx *NotCtx) error {
 
 func (r *Router) resMiddleware(ctx *ResCtx) error {
 	if handler, ok := r.resRoutes.GetOk(ctx.id); ok {
-		handler.(func(ctx *ResCtx) error)(ctx)
+		err := handler.(func(ctx *ResCtx) error)(ctx)
 		r.resRoutes.Delete(ctx.id)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
