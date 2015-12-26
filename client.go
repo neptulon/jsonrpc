@@ -1,10 +1,12 @@
 package jsonrpc
 
 import (
+	"encoding/json"
 	"sync"
 
 	"github.com/neptulon/cmap"
 	"github.com/neptulon/neptulon/client"
+	"github.com/neptulon/shortid"
 )
 
 // Client is a Neptulon JSON-RPC client.
@@ -49,4 +51,49 @@ func (c *Client) UseTLS(ca, clientCert, clientCertKey []byte) {
 func (c *Client) Connect(addr string, debug bool) error {
 	c.client.MiddlewareIn(c.NeptulonMiddleware)
 	return c.client.Connect(addr, debug)
+}
+
+// WriteRequest writes a JSON-RPC request message to a client connection with structured params object and auto generated request ID.
+func (c *Client) WriteRequest(method string, params interface{}) (reqID string, err error) {
+	id, err := shortid.UUID()
+	if err != nil {
+		return "", err
+	}
+
+	return id, c.WriteMsg(Request{ID: id, Method: method, Params: params})
+}
+
+// WriteRequestArr writes a JSON-RPC request message to a client connection with array params and auto generated request ID.
+func (c *Client) WriteRequestArr(method string, params ...interface{}) (reqID string, err error) {
+	return c.WriteRequest(method, params)
+}
+
+// WriteNotification writes a JSON-RPC notification message to a client connection with structured params object.
+func (c *Client) WriteNotification(method string, params interface{}) error {
+	return c.WriteMsg(Notification{Method: method, Params: params})
+}
+
+// WriteNotificationArr writes a JSON-RPC notification message to a client connection with array params.
+func (c *Client) WriteNotificationArr(method string, params ...interface{}) error {
+	return c.WriteNotification(method, params)
+}
+
+// WriteResponse writes a JSON-RPC response message to a client connection.
+func (c *Client) WriteResponse(id string, result interface{}, err *ResError) error {
+	return c.WriteMsg(Response{ID: id, Result: result, Error: err})
+}
+
+// WriteMsg writes any JSON-RPC message to a client connection.
+func (c *Client) WriteMsg(msg interface{}) error {
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	return c.client.Send(data)
+}
+
+// Close closes a client connection.
+func (c *Client) Close() error {
+	return c.client.Close()
 }
