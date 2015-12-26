@@ -11,13 +11,8 @@ import (
 
 // Client is a Neptulon JSON-RPC client.
 type Client struct {
-	client           *client.Client // Inner Neptulon client.
-	inReqMiddleware  []func(ctx *ReqCtx) error
-	inNotMiddleware  []func(ctx *NotCtx) error
-	inResMiddleware  []func(ctx *ResCtx) error
-	outReqMiddleware []func(ctx *ReqCtx) error
-	outNotMiddleware []func(ctx *NotCtx) error
-	outResMiddleware []func(ctx *ResCtx) error
+	Middleware
+	client *client.Client // Inner Neptulon client.
 }
 
 // NewClient creates a new Client object.
@@ -37,36 +32,6 @@ func (c *Client) ConnID() string {
 // Session is a thread-safe data store for storing arbitrary data for this connection session.
 func (c *Client) Session() *cmap.CMap {
 	return c.client.Session()
-}
-
-// InReqMiddleware registers middleware to handle incoming request messages.
-func (c *Client) InReqMiddleware(middleware ...func(ctx *ReqCtx) error) {
-	c.inReqMiddleware = append(c.inReqMiddleware, middleware...)
-}
-
-// InNotMiddleware registers middleware to handle incoming notification messages.
-func (c *Client) InNotMiddleware(middleware ...func(ctx *NotCtx) error) {
-	c.inNotMiddleware = append(c.inNotMiddleware, middleware...)
-}
-
-// InResMiddleware registers middleware to handle incoming response messages.
-func (c *Client) InResMiddleware(middleware ...func(ctx *ResCtx) error) {
-	c.inResMiddleware = append(c.inResMiddleware, middleware...)
-}
-
-// OutReqMiddleware registers middleware to handle outgoing request messages.
-func (c *Client) OutReqMiddleware(middleware ...func(ctx *ReqCtx) error) {
-	c.outReqMiddleware = append(c.outReqMiddleware, middleware...)
-}
-
-// OutNotMiddleware registers middleware to handle outgoing notification messages.
-func (c *Client) OutNotMiddleware(middleware ...func(ctx *NotCtx) error) {
-	c.outNotMiddleware = append(c.outNotMiddleware, middleware...)
-}
-
-// OutResMiddleware registers middleware to handle outgoing response messages.
-func (c *Client) OutResMiddleware(middleware ...func(ctx *ResCtx) error) {
-	c.outResMiddleware = append(c.outResMiddleware, middleware...)
 }
 
 // SetDeadline set the read/write deadlines for the connection, in seconds.
@@ -101,16 +66,16 @@ func (c *Client) neptulonMiddleware(ctx *client.Ctx) error {
 	if m.ID != "" {
 		// if incoming message is a request
 		if m.Method != "" {
-			return newReqCtx(m.ID, m.Method, m.Params, ctx.Client, c.inReqMiddleware, ctx.Session()).Next()
+			return newReqCtx(m.ID, m.Method, m.Params, ctx.Client, c.reqMiddleware, ctx.Session()).Next()
 		}
 
 		// if incoming message is a response
-		return newResCtx(m.ID, m.Result, ctx.Client, c.inResMiddleware, ctx.Session()).Next()
+		return newResCtx(m.ID, m.Result, ctx.Client, c.resMiddleware, ctx.Session()).Next()
 	}
 
 	// if incoming message is a notification
 	if m.Method != "" {
-		return newNotCtx(m.Method, m.Params, ctx.Client, c.inNotMiddleware, ctx.Session()).Next()
+		return newNotCtx(m.Method, m.Params, ctx.Client, c.notMiddleware, ctx.Session()).Next()
 	}
 
 	// not a JSON-RPC message so do nothing
