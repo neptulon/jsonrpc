@@ -12,7 +12,7 @@ type Router struct {
 	server    *Server
 	reqRoutes map[string]func(ctx *ReqCtx) error // method name -> handler func(ctx *ReqCtx) error
 	notRoutes map[string]func(ctx *NotCtx) error // method name -> handler func(ctx *NotCtx) error
-	resRoutes *cmap.CMap                         // message ID (string) -> handler func(ctx *ResCtx) error : requests sent from the router that are pending responses from clients
+	resRoutes *cmap.CMap                         // message ID (string) -> handler func(ctx *ResCtx) error : expected responses for requests that we've sent
 }
 
 // NewRouter creates a JSON-RPC router instance and registers it with the Neptulon JSON-RPC server.
