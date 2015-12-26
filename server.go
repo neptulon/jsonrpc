@@ -7,15 +7,12 @@ import (
 	"fmt"
 
 	"github.com/neptulon/neptulon"
-	"github.com/neptulon/neptulon/client"
 )
 
 // Server is a Neptulon JSON-RPC server.
 type Server struct {
-	neptulon      *neptulon.Server
-	reqMiddleware []func(ctx *ReqCtx) error
-	notMiddleware []func(ctx *NotCtx) error
-	resMiddleware []func(ctx *ResCtx) error
+	neptulon *neptulon.Server
+	mw       Middleware
 }
 
 // NewServer creates a Neptulon JSON-RPC server.
@@ -25,23 +22,23 @@ func NewServer(s *neptulon.Server) (*Server, error) {
 	}
 
 	rpc := Server{neptulon: s}
-	s.MiddlewareIn(rpc.neptulonMiddleware)
+	s.MiddlewareIn(rpc.mw.NeptulonMiddlewareIn)
 	return &rpc, nil
 }
 
 // ReqMiddleware registers middleware to handle incoming request messages.
 func (s *Server) ReqMiddleware(reqMiddleware ...func(ctx *ReqCtx) error) {
-	s.reqMiddleware = append(s.reqMiddleware, reqMiddleware...)
+	s.mw.ReqMiddleware(reqMiddleware...)
 }
 
 // NotMiddleware registers middleware to handle incoming notification messages.
 func (s *Server) NotMiddleware(notMiddleware ...func(ctx *NotCtx) error) {
-	s.notMiddleware = append(s.notMiddleware, notMiddleware...)
+	s.mw.NotMiddleware(notMiddleware...)
 }
 
 // ResMiddleware registers middleware to handle incoming response messages.
 func (s *Server) ResMiddleware(resMiddleware ...func(ctx *ResCtx) error) {
-	s.resMiddleware = append(s.resMiddleware, resMiddleware...)
+	s.mw.ResMiddleware(resMiddleware...)
 }
 
 // send sends a message throught the connection denoted by the connection ID.
@@ -56,34 +53,5 @@ func (s *Server) send(connID string, msg interface{}) error {
 		return fmt.Errorf("error while sending JSON-RPC message: %v", err)
 	}
 
-	return nil
-}
-
-// NeptulonMiddleware handles incoming messages,
-// categorizes the messages as one of the three JSON-RPC message types (if they are so),
-// and triggers relevant middleware.
-func (s *Server) neptulonMiddleware(ctx *client.Ctx) error {
-	var m message
-	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
-		return fmt.Errorf("cannot deserialize incoming message: %v", err)
-	}
-
-	// if incoming message is a request or response
-	if m.ID != "" {
-		// if incoming message is a request
-		if m.Method != "" {
-			return newReqCtx(m.ID, m.Method, m.Params, ctx.Client, s.reqMiddleware, ctx.Session()).Next()
-		}
-
-		// if incoming message is a response
-		return newResCtx(m.ID, m.Result, ctx.Client, s.resMiddleware, ctx.Session()).Next()
-	}
-
-	// if incoming message is a notification
-	if m.Method != "" {
-		return newNotCtx(m.Method, m.Params, ctx.Client, s.notMiddleware, ctx.Session()).Next()
-	}
-
-	// not a JSON-RPC message so do nothing
 	return nil
 }
