@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/neptulon/neptulon"
 	"github.com/neptulon/neptulon/client"
@@ -22,7 +21,7 @@ type Server struct {
 // NewServer creates a Neptulon JSON-RPC server.
 func NewServer(s *neptulon.Server) (*Server, error) {
 	if s == nil {
-		return nil, errors.New("Given Neptulon server instance is nil.")
+		return nil, errors.New("given Neptulon server instance is nil")
 	}
 
 	rpc := Server{neptulon: s}
@@ -49,53 +48,38 @@ func (s *Server) ResMiddleware(resMiddleware ...func(ctx *ResCtx) error) {
 func (s *Server) send(connID string, msg interface{}) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
-		return fmt.Errorf("Errored while serializing JSON-RPC message: %v", err)
+		return fmt.Errorf("error while serializing JSON-RPC message: %v", err)
 	}
 
 	err = s.neptulon.Send(connID, data)
 	if err != nil {
-		return fmt.Errorf("Errored while sending JSON-RPC message: %v", err)
+		return fmt.Errorf("error while sending JSON-RPC message: %v", err)
 	}
 
 	return nil
 }
 
+// NeptulonMiddleware deserializes incoming messages from Neptulon server and categorizes them as JSON-RPC message types, if any.
 func (s *Server) neptulonMiddleware(ctx *client.Ctx) error {
 	var m message
 	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
-		log.Fatalln("Cannot deserialize incoming message:", err)
+		return fmt.Errorf("cannot deserialize incoming message: %v", err)
 	}
 
 	// if incoming message is a request or response
 	if m.ID != "" {
 		// if incoming message is a request
 		if m.Method != "" {
-			newReqCtx(m.ID, m.Method, m.Params, ctx.Client, s.reqMiddleware).Next()
+			return newReqCtx(m.ID, m.Method, m.Params, ctx.Client, s.reqMiddleware, ctx.Session()).Next()
 		}
 
 		// if incoming message is a response
-		rctx := ResCtx{Conn: NewConn(ctx.Client), id: m.ID, result: m.Result, err: m.Error}
-		for _, mid := range s.resMiddleware {
-			mid(&rctx)
-			if rctx.Done {
-				break
-			}
-		}
-
-		return nil
+		return newResCtx(m.ID, m.Result, ctx.Client, s.resMiddleware, ctx.Session()).Next()
 	}
 
 	// if incoming message is a notification
 	if m.Method != "" {
-		rctx := NotCtx{Conn: NewConn(ctx.Client), method: m.Method, params: m.Params}
-		for _, mid := range s.notMiddleware {
-			mid(&rctx)
-			if rctx.Done {
-				break
-			}
-		}
-
-		return nil
+		return newNotCtx(m.Method, m.Params, ctx.Client, s.notMiddleware, ctx.Session()).Next()
 	}
 
 	// not a JSON-RPC message so do nothing
