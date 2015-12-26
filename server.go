@@ -22,7 +22,7 @@ func NewServer(s *neptulon.Server) (*Server, error) {
 	}
 
 	rpc := Server{neptulon: s}
-	s.MiddlewareIn(rpc.mw.NeptulonMiddlewareIn)
+	s.MiddlewareIn(rpc.mw.NeptulonMiddleware)
 	return &rpc, nil
 }
 
