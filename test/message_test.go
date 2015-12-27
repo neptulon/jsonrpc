@@ -55,14 +55,18 @@ func TestEcho(t *testing.T) {
 	})
 
 	wg.Add(1)
-	jc.SendRequest("echo", echoMsg{Message: "Hello!"}) // todo4 (do after todo3): SendRequest should use Sender automatically and accept response callback which would be registered as last middleware
+	// todo4 (do after todo3): SendRequest should use Sender automatically
+	//  and accept response callback which would be registered as last middleware
+	//  same goes for Server.SendTo() also, which would use the same Sender.go middleware
+	jc.SendRequest("echo", echoMsg{Message: "Hello!"})
 	wg.Wait()
 }
 
 func TestOrderedDuplex(t *testing.T) {
-
+	// client requests, server answers, server requests, client answers, client closes gracefully
 }
 
 func TestSimultaneousDuplex(t *testing.T) {
-
+	// mash of requests, notifications, responses flying in both directions in a random loop with predefined answers
+	// along with long running background request-response with large data to test interleaving and to experiment with future streaming semantics
 }
