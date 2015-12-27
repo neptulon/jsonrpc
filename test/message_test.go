@@ -40,6 +40,9 @@ func TestEcho(t *testing.T) {
 	ch := sh.GetTCPClientHelper().Connect()
 	defer ch.Close()
 
+	// todo: separate echo middleware into /middleware package
+	// todo2: use sender.go rather than this manual handling
+
 	jc := jsonrpc.UseClient(ch.Client)
 	jc.ResMiddleware(func(ctx *jsonrpc.ResCtx) error {
 		defer wg.Done()
