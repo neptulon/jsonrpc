@@ -14,6 +14,7 @@ type echoMsg struct {
 }
 
 func TestEcho(t *testing.T) {
+	// todo: streamline these like test.NewServerHelper(t).GetRouter().GetClientHelper() // these could wrap other helpers or directly objects?
 	sh := test.NewTCPServerHelper(t).Start()
 	defer sh.Close()
 
@@ -27,6 +28,8 @@ func TestEcho(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// -----------------
+
 	rout.Request("echo", middleware.Echo)
 
 	var wg sync.WaitGroup
@@ -36,6 +39,7 @@ func TestEcho(t *testing.T) {
 
 	// todo: separate echo middleware into /middleware package
 	// todo2: use sender.go rather than this manual handling
+	// todo3: Helper.Middleware function should do the wg.Add(1)/wg.Done() and Close should wait for it. Also in neptulon
 
 	jc := jsonrpc.UseClient(ch.Client)
 	jc.ResMiddleware(func(ctx *jsonrpc.ResCtx) error {
