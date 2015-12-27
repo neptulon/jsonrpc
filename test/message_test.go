@@ -1,17 +1,14 @@
 package test
 
 import (
-	"reflect"
 	"sync"
 	"testing"
 
 	"github.com/neptulon/jsonrpc"
-	"github.com/neptulon/neptulon/client"
 	"github.com/neptulon/neptulon/test"
 )
 
 type echoMsg struct {
-	To      string `json:"to"`
 	Message string `json:"message"`
 }
 
@@ -39,18 +36,24 @@ func TestEcho(t *testing.T) {
 	})
 
 	var wg sync.WaitGroup
-	msg := []byte("test message")
 
-	ch := sh.GetTCPClientHelper().MiddlewareIn(func(ctx *client.Ctx) error {
-		defer wg.Done()
-		if !reflect.DeepEqual(ctx.Msg, msg) {
-			t.Fatalf("expected: '%s', got: '%s'", msg, ctx.Msg)
-		}
-		return ctx.Next()
-	}).Connect()
+	ch := sh.GetTCPClientHelper().Connect()
 	defer ch.Close()
 
+	jc := jsonrpc.UseClient(ch.Client)
+	jc.ResMiddleware(func(ctx *jsonrpc.ResCtx) error {
+		defer wg.Done()
+		var msg echoMsg
+		if err := ctx.Result(&msg); err != nil {
+			t.Fatal(err)
+		}
+		if msg.Message != "Hello!" {
+			t.Fatalf("expected: %v got: %v", "Hello!", msg.Message)
+		}
+		return ctx.Next()
+	})
+
 	wg.Add(1)
-	ch.Send(msg)
+	jc.SendRequest("echo", echoMsg{Message: "Hello!"})
 	wg.Wait()
 }

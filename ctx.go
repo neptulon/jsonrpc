@@ -31,13 +31,13 @@ func newReqCtx(id, method string, params json.RawMessage, client *client.Client,
 	// append the last middleware to stack, which will write the response to connection, if any
 	mw = append(mw, func(ctx *ReqCtx) error {
 		if ctx.Res != nil || ctx.Err != nil {
-			return ctx.Client.WriteResponse(ctx.id, ctx.Res, ctx.Err)
+			return ctx.Client.SendResponse(ctx.id, ctx.Res, ctx.Err)
 		}
 
 		return nil
 	})
 
-	return &ReqCtx{Client: useClient(client), id: id, method: method, params: params, mw: mw}
+	return &ReqCtx{Client: UseClient(client), id: id, method: method, params: params, mw: mw}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
@@ -81,7 +81,7 @@ type NotCtx struct {
 }
 
 func newNotCtx(method string, params json.RawMessage, client *client.Client, mw []func(ctx *NotCtx) error, session *cmap.CMap) *NotCtx {
-	return &NotCtx{Client: useClient(client), method: method, params: params, mw: mw}
+	return &NotCtx{Client: UseClient(client), method: method, params: params, mw: mw}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
@@ -127,7 +127,7 @@ type ResCtx struct {
 }
 
 func newResCtx(id string, result json.RawMessage, client *client.Client, mw []func(ctx *ResCtx) error, session *cmap.CMap) *ResCtx {
-	return &ResCtx{Client: useClient(client), id: id, result: result, mw: mw}
+	return &ResCtx{Client: UseClient(client), id: id, result: result, mw: mw}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
