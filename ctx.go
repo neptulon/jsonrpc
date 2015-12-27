@@ -138,7 +138,7 @@ func (ctx *ResCtx) Session() *cmap.CMap {
 // Result reads response result data into given object.
 // Object should be passed by reference.
 func (ctx *ResCtx) Result(v interface{}) error {
-	if ctx.result == nil {
+	if ctx.result != nil {
 		if err := json.Unmarshal(ctx.result, v); err != nil {
 			return fmt.Errorf("cannot deserialize response result: %v", err)
 		}

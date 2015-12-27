@@ -26,9 +26,11 @@ func NewClient(msgWG *sync.WaitGroup, disconnHandler func(client *client.Client)
 
 // UseClient wraps an established Neptulon Client into a JSON-RPC Client.
 func UseClient(client *client.Client) *Client {
-	return &Client{
+	c := &Client{
 		client: client,
 	}
+	client.MiddlewareIn(c.NeptulonMiddleware)
+	return c
 }
 
 // ConnID is a randomly generated unique client connection ID.
