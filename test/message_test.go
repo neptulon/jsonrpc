@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/neptulon/jsonrpc"
+	"github.com/neptulon/jsonrpc/middleware"
 	"github.com/neptulon/neptulon/test"
 )
 
@@ -26,14 +27,7 @@ func TestEcho(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rout.Request("echo", func(ctx *jsonrpc.ReqCtx) error {
-		var msg echoMsg
-		if err := ctx.Params(&msg); err != nil {
-			t.Fatal(err)
-		}
-		ctx.Res = msg
-		return ctx.Next()
-	})
+	rout.Request("echo", middleware.Echo)
 
 	var wg sync.WaitGroup
 
