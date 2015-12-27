@@ -55,6 +55,14 @@ func TestEcho(t *testing.T) {
 	})
 
 	wg.Add(1)
-	jc.SendRequest("echo", echoMsg{Message: "Hello!"})
+	jc.SendRequest("echo", echoMsg{Message: "Hello!"}) // todo4 (do after todo3): SendRequest should use Sender automatically and accept response callback which would be registered as last middleware
 	wg.Wait()
+}
+
+func TestOrderedDuplex(t *testing.T) {
+
+}
+
+func TestSimultaneousDuplex(t *testing.T) {
+
 }
