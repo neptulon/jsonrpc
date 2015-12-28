@@ -12,7 +12,7 @@ import (
 type ServerHelper struct {
 	Server *jsonrpc.Server
 
-	sh      *test.ServerHelper
+	nepSH   *test.ServerHelper // inner Neptulon ServerHelper object
 	testing *testing.T
 }
 
@@ -27,13 +27,28 @@ func NewServerHelper(t *testing.T) *ServerHelper {
 	return &ServerHelper{
 		Server: js,
 
-		sh:      sh,
+		nepSH:   sh,
 		testing: t,
 	}
 }
 
+// GetRouter creates and attaches a new Router middleware to JSON-RPC server and returns it.
+func (sh *ServerHelper) GetRouter() *jsonrpc.Router {
+	route, err := jsonrpc.NewRouter(&sh.Server.Middleware)
+	if err != nil {
+		sh.testing.Fatal(err)
+	}
+
+	return route
+}
+
 // Start starts the server.
 func (sh *ServerHelper) Start() *ServerHelper {
-	sh.sh.Start()
+	sh.nepSH.Start()
 	return sh
+}
+
+// Close stops the server listener and connections.
+func (sh *ServerHelper) Close() {
+	sh.nepSH.Close()
 }

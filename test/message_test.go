@@ -6,7 +6,6 @@ import (
 
 	"github.com/neptulon/jsonrpc"
 	"github.com/neptulon/jsonrpc/middleware"
-	"github.com/neptulon/neptulon/test"
 )
 
 type echoMsg struct {
@@ -15,18 +14,10 @@ type echoMsg struct {
 
 func TestEcho(t *testing.T) {
 	// todo: streamline these like test.NewServerHelper(t).GetRouter().GetClientHelper() // these could wrap other helpers or directly objects?
-	sh := test.NewTCPServerHelper(t)
+	sh := NewServerHelper(t)
 	defer sh.Close()
 
-	js, err := jsonrpc.NewServer(sh.Server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rout, err := jsonrpc.NewRouter(&js.Middleware)
-	if err != nil {
-		t.Fatal(err)
-	}
+	rout := sh.GetRouter()
 
 	// -----------------
 
@@ -35,7 +26,7 @@ func TestEcho(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	ch := sh.GetTCPClientHelper().Connect()
+	ch := sh.nepSH.GetTCPClientHelper().Connect()
 	defer ch.Close()
 
 	// todo: separate echo middleware into /middleware package
