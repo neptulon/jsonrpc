@@ -14,20 +14,18 @@ type echoMsg struct {
 
 func TestEcho(t *testing.T) {
 	// todo: streamline these like test.NewServerHelper(t).GetRouter().GetClientHelper() // these could wrap other helpers or directly objects?
-	sh := NewServerHelper(t)
+	sh := NewServerHelper(t).Start()
 	defer sh.Close()
-
-	rout := sh.GetRouter()
-
-	// -----------------
-
-	rout.Request("echo", middleware.Echo)
-	sh.Start()
-
-	var wg sync.WaitGroup
 
 	ch := sh.nepSH.GetTCPClientHelper().Connect()
 	defer ch.Close()
+
+	rout := sh.GetRouter()
+	rout.Request("echo", middleware.Echo)
+
+	// -----------------
+
+	var wg sync.WaitGroup
 
 	// todo: separate echo middleware into /middleware package
 	// todo2: use sender.go rather than this manual handling
