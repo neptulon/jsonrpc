@@ -15,7 +15,7 @@ type echoMsg struct {
 
 func TestEcho(t *testing.T) {
 	// todo: streamline these like test.NewServerHelper(t).GetRouter().GetClientHelper() // these could wrap other helpers or directly objects?
-	sh := test.NewTCPServerHelper(t).Start()
+	sh := test.NewTCPServerHelper(t)
 	defer sh.Close()
 
 	js, err := jsonrpc.NewServer(sh.Server)
@@ -31,6 +31,7 @@ func TestEcho(t *testing.T) {
 	// -----------------
 
 	rout.Request("echo", middleware.Echo)
+	sh.Start()
 
 	var wg sync.WaitGroup
 
