@@ -42,6 +42,11 @@ func (sh *ServerHelper) GetRouter() *jsonrpc.Router {
 	return route
 }
 
+// GetClientHelper creates a client connection to this server instance and returns the connection wrapped in a ClientHelper.
+func (sh *ServerHelper) GetClientHelper() *ClientHelper {
+	return NewClientHelper(sh.testing, sh.nepSH.Address)
+}
+
 // Start starts the server.
 func (sh *ServerHelper) Start() *ServerHelper {
 	sh.nepSH.Start()

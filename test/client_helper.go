@@ -13,3 +13,8 @@ type ClientHelper struct {
 
 	testing *testing.T
 }
+
+// NewClientHelper creates a new client helper object.
+func NewClientHelper(t *testing.T, addr string) *ClientHelper {
+	return nil
+}
