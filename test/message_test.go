@@ -13,10 +13,10 @@ type echoMsg struct {
 }
 
 func TestEcho(t *testing.T) {
-	// todo: streamline these like test.NewServerHelper(t).GetRouter().GetClientHelper() // these could wrap other helpers or directly objects?
 	sh := NewServerHelper(t).Start()
 	defer sh.Close()
 
+	// todo5: implement sh.GetClientHelper() instead after deciding what and how to wrap Neptulon Client/ClientHelper
 	ch := sh.nepSH.GetTCPClientHelper().Connect()
 	defer ch.Close()
 
@@ -27,7 +27,7 @@ func TestEcho(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	// todo: separate echo middleware into /middleware package
+	// todo1: separate echo middleware into /middleware package
 	// todo2: use sender.go rather than this manual handling
 	// todo3: Helper.Middleware function should do the wg.Add(1)/wg.Done() and Close should wait for it. Also in neptulon
 
