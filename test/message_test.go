@@ -27,7 +27,6 @@ func TestEcho(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	// todo1: separate echo middleware into /middleware package
 	// todo2: use sender.go rather than this manual handling
 	// todo3: Helper.Middleware function should do the wg.Add(1)/wg.Done() and Close should wait for it. Also in neptulon
 

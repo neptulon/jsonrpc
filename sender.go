@@ -5,7 +5,7 @@ import (
 	"github.com/neptulon/shortid"
 )
 
-// Sender is a JSON-RPC middleware for sending requests and receiving responses.
+// Sender is a JSON-RPC middleware for sending requests and handling responses asynchronously.
 type Sender struct {
 	send      func(connID string, msg interface{}) error
 	resRoutes *cmap.CMap // message ID (string) -> handler func(ctx *ResCtx) error : expected responses for requests that we've sent
