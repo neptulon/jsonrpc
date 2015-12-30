@@ -9,8 +9,10 @@ import (
 
 // Sender is a JSON-RPC middleware for sending requests and handling responses asynchronously.
 type Sender struct {
-	send      func(connID string, msg []byte) error
-	resRoutes *cmap.CMap // message ID (string) -> handler func(ctx *ResCtx) error : expected responses for requests that we've sent
+	send                         func(connID string, msg []byte) error
+	resRoutes                    *cmap.CMap  // message ID (string) -> handler func(ctx *ResCtx) error : expected responses for requests that we've sent
+	m                            *Middleware // Middleware to lazy register our response handler with. See lazyRegisterMiddleware method for details.
+	registeredResponseMiddleware bool
 }
 
 // NewSender creates a new Sender middleware.
@@ -18,15 +20,17 @@ func NewSender(m *Middleware, send func(connID string, msg []byte) error) Sender
 	s := Sender{
 		send:      send,
 		resRoutes: cmap.New(),
+		m:         m,
 	}
 
-	m.ResMiddleware(s.resMiddleware)
 	return s
 }
 
 // SendRequest sends a JSON-RPC request throught the connection denoted by the connection ID with an auto generated request ID.
 // resHandler is called when a response is returned.
 func (s *Sender) SendRequest(connID string, method string, params interface{}, resHandler func(ctx *ResCtx) error) (reqID string, err error) {
+	s.lazyRegisterMiddleware()
+
 	id, err := shortid.UUID()
 	if err != nil {
 		return "", err
@@ -70,6 +74,16 @@ func (s *Sender) sendMsg(connID string, msg interface{}) error {
 	}
 
 	return s.send(connID, data)
+}
+
+// Sender middleware should be registered the last so all the middleware will intercept the incoming response messages
+// before they are delivered to the final user handler.
+func (s *Sender) lazyRegisterMiddleware() {
+	if !s.registeredResponseMiddleware {
+		s.m.ResMiddleware(s.resMiddleware)
+	}
+
+	s.registeredResponseMiddleware = true
 }
 
 // ResMiddleware is a JSON-RPC incoming response handler middleware.
