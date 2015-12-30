@@ -31,7 +31,7 @@ func newReqCtx(id, method string, params json.RawMessage, client *client.Client,
 	// append the last middleware to stack, which will write the response to connection, if any
 	mw = append(mw, func(ctx *ReqCtx) error {
 		if ctx.Res != nil || ctx.Err != nil {
-			return ctx.Client.SendResponse("", ctx.id, ctx.Res, ctx.Err)
+			return ctx.Client.SendResponse(ctx.id, ctx.Res, ctx.Err)
 		}
 
 		return nil

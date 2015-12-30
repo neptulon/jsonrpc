@@ -47,7 +47,7 @@ func TestEcho(t *testing.T) {
 	// todo4 (do after todo3): SendRequest should use Sender automatically
 	//  and accept response callback which would be registered as last middleware
 	//  same goes for Server.SendTo() also, which would use the same Sender.go middleware
-	jc.SendRequest("", "echo", echoMsg{Message: "Hello!"}, nil)
+	jc.SendRequest("echo", echoMsg{Message: "Hello!"}, nil)
 	wg.Wait()
 }
 

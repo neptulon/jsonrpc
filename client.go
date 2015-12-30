@@ -10,7 +10,7 @@ import (
 // Client is a Neptulon JSON-RPC client.
 type Client struct {
 	Middleware
-	Sender
+	sender Sender
 	client *client.Client // Inner Neptulon client.
 }
 
@@ -25,7 +25,7 @@ func NewClient(msgWG *sync.WaitGroup, disconnHandler func(client *client.Client)
 func UseClient(client *client.Client) *Client {
 	c := Client{client: client}
 	c.client.MiddlewareIn(c.Middleware.neptulonMiddleware)
-	c.Sender = NewSender(func(connID string, msg []byte) error { return c.client.Send(msg) })
+	c.sender = NewSender(func(connID string, msg []byte) error { return c.client.Send(msg) }) // todo: this should be the last to be registered but how?
 	return &c
 }
 
@@ -55,6 +55,33 @@ func (c *Client) UseTLS(ca, clientCert, clientCertKey []byte) {
 // Connect connectes to the server at given network address and starts receiving messages.
 func (c *Client) Connect(addr string, debug bool) error {
 	return c.client.Connect(addr, debug)
+}
+
+// SendRequest sends a JSON-RPC request throught the connection denoted by the connection ID with an auto generated request ID.
+// resHandler is called when a response is returned.
+func (c *Client) SendRequest(method string, params interface{}, resHandler func(ctx *ResCtx)) (reqID string, err error) {
+	return c.sender.SendRequest("", method, params, resHandler)
+}
+
+// SendRequestArr sends a JSON-RPC request throught the connection denoted by the connection ID, with array params and auto generated request ID.
+// resHandler is called when a response is returned.
+func (c *Client) SendRequestArr(method string, resHandler func(ctx *ResCtx), params ...interface{}) (reqID string, err error) {
+	return c.sender.SendRequestArr("", method, resHandler, params)
+}
+
+// SendNotification sends a JSON-RPC notification throught the connection denoted by the connection ID with structured params object.
+func (c *Client) SendNotification(method string, params interface{}) error {
+	return c.sender.SendNotification("", method, params)
+}
+
+// SendNotificationArr sends a JSON-RPC notification message throught the connection denoted by the connection ID with array params.
+func (c *Client) SendNotificationArr(method string, params ...interface{}) error {
+	return c.sender.SendNotificationArr("", method, params)
+}
+
+// SendResponse sends a JSON-RPC response throught the connection denoted by the connection ID.
+func (c *Client) SendResponse(id string, result interface{}, err *ResError) error {
+	return c.sender.SendResponse("", id, result, err)
 }
 
 // Close closes a client connection.

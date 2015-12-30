@@ -54,7 +54,7 @@ func (s *Sender) SendNotificationArr(connID string, method string, params ...int
 	return s.SendNotification(connID, method, params)
 }
 
-// SendResponse sends a JSON-RPC response throught the connection denoted by the connection ID.
+// SendResponse sends a JSON-RPC response message throught the connection denoted by the connection ID.
 func (s *Sender) SendResponse(connID string, id string, result interface{}, err *ResError) error {
 	return s.sendMsg(connID, Response{ID: id, Result: result, Error: err})
 }
