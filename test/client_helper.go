@@ -33,10 +33,17 @@ func NewClientHelper(t *testing.T, addr string) *ClientHelper {
 // SendRequest sends a JSON-RPC request through the client connection with an auto generated request ID.
 // resHandler is called when a response is returned.
 func (ch *ClientHelper) SendRequest(method string, params interface{}, resHandler func(ctx *jsonrpc.ResCtx) error) *ClientHelper {
-	if _, err := ch.Client.SendRequest(method, params, resHandler); err != nil {
+	ch.resWG.Add(1)
+	_, err := ch.Client.SendRequest(method, params, func(ctx *jsonrpc.ResCtx) error {
+		defer ch.resWG.Done()
+		return resHandler(ctx)
+	})
+
+	if err != nil {
 		ch.testing.Fatal("Failed to send request:", err)
 	}
 
+	ch.resWG.Wait()
 	return ch
 }
 

@@ -1,7 +1,6 @@
 package test
 
 import (
-	"sync"
 	"testing"
 
 	"github.com/neptulon/jsonrpc"
@@ -22,12 +21,7 @@ func TestEcho(t *testing.T) {
 	ch := sh.GetClientHelper()
 	defer ch.Close()
 
-	// todo2: Helper.Middleware function should do the wg.Add(1)/wg.Done() and Close should wait for it. Also in neptulon
-	var wg sync.WaitGroup
-	wg.Add(1)
-
 	ch.SendRequest("echo", echoMsg{Message: "Hello!"}, func(ctx *jsonrpc.ResCtx) error {
-		defer wg.Done()
 		var msg echoMsg
 		if err := ctx.Result(&msg); err != nil {
 			t.Fatal(err)
@@ -37,8 +31,6 @@ func TestEcho(t *testing.T) {
 		}
 		return ctx.Next()
 	})
-
-	wg.Wait()
 }
 
 func TestOrderedDuplex(t *testing.T) {
