@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/neptulon/neptulon/client"
+	"github.com/neptulon/neptulon"
 )
 
 // Middleware is a Neptulon middleware for handling JSON-RPC protocol and relevant JSON-RPC middleware.
@@ -32,7 +32,7 @@ func (mw *Middleware) ResMiddleware(resMiddleware ...func(ctx *ResCtx) error) {
 // NeptulonMiddleware handles raw messages,
 // categorizes the messages as one of the three JSON-RPC message types (if they are so),
 // and triggers relevant middleware.
-func (mw *Middleware) neptulonMiddleware(ctx *client.Ctx) error {
+func (mw *Middleware) neptulonMiddleware(ctx *neptulon.Ctx) error {
 	var m message
 	if err := json.Unmarshal(ctx.Msg, &m); err != nil {
 		return fmt.Errorf("cannot deserialize message: %v", err)

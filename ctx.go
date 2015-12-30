@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/neptulon/cmap"
-	"github.com/neptulon/neptulon/client"
+	"github.com/neptulon/neptulon"
 )
 
 /*
@@ -27,7 +27,7 @@ type ReqCtx struct {
 	session *cmap.CMap
 }
 
-func newReqCtx(id, method string, params json.RawMessage, client *client.Client, mw []func(ctx *ReqCtx) error, session *cmap.CMap) *ReqCtx {
+func newReqCtx(id, method string, params json.RawMessage, client *neptulon.Client, mw []func(ctx *ReqCtx) error, session *cmap.CMap) *ReqCtx {
 	// append the last middleware to stack, which will write the response to connection, if any
 	mw = append(mw, func(ctx *ReqCtx) error {
 		if ctx.Res != nil || ctx.Err != nil {
@@ -80,7 +80,7 @@ type NotCtx struct {
 	session *cmap.CMap
 }
 
-func newNotCtx(method string, params json.RawMessage, client *client.Client, mw []func(ctx *NotCtx) error, session *cmap.CMap) *NotCtx {
+func newNotCtx(method string, params json.RawMessage, client *neptulon.Client, mw []func(ctx *NotCtx) error, session *cmap.CMap) *NotCtx {
 	return &NotCtx{Client: UseClient(client), method: method, params: params, mw: mw}
 }
 
@@ -126,7 +126,7 @@ type ResCtx struct {
 	session *cmap.CMap
 }
 
-func newResCtx(id string, result json.RawMessage, client *client.Client, mw []func(ctx *ResCtx) error, session *cmap.CMap) *ResCtx {
+func newResCtx(id string, result json.RawMessage, client *neptulon.Client, mw []func(ctx *ResCtx) error, session *cmap.CMap) *ResCtx {
 	return &ResCtx{Client: UseClient(client), id: id, result: result, mw: mw}
 }
 

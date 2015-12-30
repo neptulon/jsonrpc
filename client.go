@@ -4,25 +4,25 @@ import (
 	"sync"
 
 	"github.com/neptulon/cmap"
-	"github.com/neptulon/neptulon/client"
+	"github.com/neptulon/neptulon"
 )
 
 // Client is a Neptulon JSON-RPC client.
 type Client struct {
 	Middleware
 	sender Sender
-	client *client.Client // Inner Neptulon client.
+	client *neptulon.Client // Inner Neptulon client.
 }
 
 // NewClient creates a new Client object.
 // msgWG = (optional) sets the given *sync.WaitGroup reference to be used for counting active gorotuines that are used for handling incoming/outgoing messages.
 // disconnHandler = (optional) registers a function to handle client disconnection events.
-func NewClient(msgWG *sync.WaitGroup, disconnHandler func(client *client.Client)) *Client {
-	return UseClient(client.NewClient(msgWG, disconnHandler))
+func NewClient(msgWG *sync.WaitGroup, disconnHandler func(client *neptulon.Client)) *Client {
+	return UseClient(neptulon.NewClient(msgWG, disconnHandler))
 }
 
 // UseClient wraps an established Neptulon Client into a JSON-RPC Client.
-func UseClient(client *client.Client) *Client {
+func UseClient(client *neptulon.Client) *Client {
 	c := Client{client: client}
 	c.client.MiddlewareIn(c.Middleware.neptulonMiddleware)
 	c.sender = NewSender(&c.Middleware, func(connID string, msg []byte) error { return c.client.Send(msg) })
