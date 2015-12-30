@@ -57,29 +57,29 @@ func (c *Client) Connect(addr string, debug bool) error {
 	return c.client.Connect(addr, debug)
 }
 
-// SendRequest sends a JSON-RPC request throught the connection denoted by the connection ID with an auto generated request ID.
+// SendRequest sends a JSON-RPC request through the client connection with an auto generated request ID.
 // resHandler is called when a response is returned.
 func (c *Client) SendRequest(method string, params interface{}, resHandler func(ctx *ResCtx) error) (reqID string, err error) {
 	return c.sender.SendRequest("", method, params, resHandler)
 }
 
-// SendRequestArr sends a JSON-RPC request throught the connection denoted by the connection ID, with array params and auto generated request ID.
+// SendRequestArr sends a JSON-RPC request through the client connection, with array params and auto generated request ID.
 // resHandler is called when a response is returned.
 func (c *Client) SendRequestArr(method string, resHandler func(ctx *ResCtx) error, params ...interface{}) (reqID string, err error) {
 	return c.sender.SendRequestArr("", method, resHandler, params)
 }
 
-// SendNotification sends a JSON-RPC notification throught the connection denoted by the connection ID with structured params object.
+// SendNotification sends a JSON-RPC notification through the client connection with structured params object.
 func (c *Client) SendNotification(method string, params interface{}) error {
 	return c.sender.SendNotification("", method, params)
 }
 
-// SendNotificationArr sends a JSON-RPC notification message throught the connection denoted by the connection ID with array params.
+// SendNotificationArr sends a JSON-RPC notification message through the client connection with array params.
 func (c *Client) SendNotificationArr(method string, params ...interface{}) error {
 	return c.sender.SendNotificationArr("", method, params)
 }
 
-// SendResponse sends a JSON-RPC response throught the connection denoted by the connection ID.
+// SendResponse sends a JSON-RPC response through the client connection.
 func (c *Client) SendResponse(id string, result interface{}, err *ResError) error {
 	return c.sender.SendResponse("", id, result, err)
 }

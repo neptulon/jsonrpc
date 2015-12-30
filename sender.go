@@ -26,7 +26,7 @@ func NewSender(m *Middleware, send func(connID string, msg []byte) error) Sender
 	return s
 }
 
-// SendRequest sends a JSON-RPC request throught the connection denoted by the connection ID with an auto generated request ID.
+// SendRequest sends a JSON-RPC request through the connection denoted by the connection ID with an auto generated request ID.
 // resHandler is called when a response is returned.
 func (s *Sender) SendRequest(connID string, method string, params interface{}, resHandler func(ctx *ResCtx) error) (reqID string, err error) {
 	s.lazyRegisterMiddleware()
@@ -45,28 +45,28 @@ func (s *Sender) SendRequest(connID string, method string, params interface{}, r
 	return id, nil
 }
 
-// SendRequestArr sends a JSON-RPC request throught the connection denoted by the connection ID, with array params and auto generated request ID.
+// SendRequestArr sends a JSON-RPC request through the connection denoted by the connection ID, with array params and auto generated request ID.
 // resHandler is called when a response is returned.
 func (s *Sender) SendRequestArr(connID string, method string, resHandler func(ctx *ResCtx) error, params ...interface{}) (reqID string, err error) {
 	return s.SendRequest(connID, method, params, resHandler)
 }
 
-// SendNotification sends a JSON-RPC notification throught the connection denoted by the connection ID with structured params object.
+// SendNotification sends a JSON-RPC notification through the connection denoted by the connection ID with structured params object.
 func (s *Sender) SendNotification(connID string, method string, params interface{}) error {
 	return s.sendMsg(connID, Notification{Method: method, Params: params})
 }
 
-// SendNotificationArr sends a JSON-RPC notification message throught the connection denoted by the connection ID with array params.
+// SendNotificationArr sends a JSON-RPC notification message through the connection denoted by the connection ID with array params.
 func (s *Sender) SendNotificationArr(connID string, method string, params ...interface{}) error {
 	return s.SendNotification(connID, method, params)
 }
 
-// SendResponse sends a JSON-RPC response message throught the connection denoted by the connection ID.
+// SendResponse sends a JSON-RPC response message through the connection denoted by the connection ID.
 func (s *Sender) SendResponse(connID string, id string, result interface{}, err *ResError) error {
 	return s.sendMsg(connID, Response{ID: id, Result: result, Error: err})
 }
 
-// SendMsg sends any JSON-RPC message throught the connection denoted by the connection ID.
+// SendMsg sends any JSON-RPC message through the connection denoted by the connection ID.
 func (s *Sender) sendMsg(connID string, msg interface{}) error {
 	data, err := json.Marshal(msg)
 	if err != nil {

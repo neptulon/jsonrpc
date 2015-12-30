@@ -16,20 +16,17 @@ func TestEcho(t *testing.T) {
 	sh := NewServerHelper(t).Start()
 	defer sh.Close()
 
-	// todo5: implement sh.GetClientHelper() instead after deciding what and how to wrap Neptulon Client/ClientHelper
-	ch := sh.nepSH.GetTCPClientHelper().Connect()
-	defer ch.Close()
-
 	rout := sh.GetRouter()
 	rout.Request("echo", middleware.Echo)
 
-	var wg sync.WaitGroup
+	ch := sh.GetClientHelper()
+	defer ch.Close()
 
 	// todo2: Helper.Middleware function should do the wg.Add(1)/wg.Done() and Close should wait for it. Also in neptulon
-
-	jc := jsonrpc.UseClient(ch.Client)
+	var wg sync.WaitGroup
 	wg.Add(1)
-	jc.SendRequest("echo", echoMsg{Message: "Hello!"}, func(ctx *jsonrpc.ResCtx) error {
+
+	ch.SendRequest("echo", echoMsg{Message: "Hello!"}, func(ctx *jsonrpc.ResCtx) error {
 		defer wg.Done()
 		var msg echoMsg
 		if err := ctx.Result(&msg); err != nil {
@@ -40,6 +37,7 @@ func TestEcho(t *testing.T) {
 		}
 		return ctx.Next()
 	})
+
 	wg.Wait()
 }
 
