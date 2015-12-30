@@ -23,15 +23,13 @@ func TestEcho(t *testing.T) {
 	rout := sh.GetRouter()
 	rout.Request("echo", middleware.Echo)
 
-	// -----------------
-
 	var wg sync.WaitGroup
 
-	// todo2: use sender.go rather than this manual handling
-	// todo3: Helper.Middleware function should do the wg.Add(1)/wg.Done() and Close should wait for it. Also in neptulon
+	// todo2: Helper.Middleware function should do the wg.Add(1)/wg.Done() and Close should wait for it. Also in neptulon
 
 	jc := jsonrpc.UseClient(ch.Client)
-	jc.ResMiddleware(func(ctx *jsonrpc.ResCtx) error {
+	wg.Add(1)
+	jc.SendRequest("echo", echoMsg{Message: "Hello!"}, func(ctx *jsonrpc.ResCtx) error {
 		defer wg.Done()
 		var msg echoMsg
 		if err := ctx.Result(&msg); err != nil {
@@ -42,12 +40,6 @@ func TestEcho(t *testing.T) {
 		}
 		return ctx.Next()
 	})
-
-	wg.Add(1)
-	// todo4 (do after todo3): SendRequest should use Sender automatically
-	//  and accept response callback which would be registered as last middleware
-	//  same goes for Server.SendTo() also, which would use the same Sender.go middleware
-	jc.SendRequest("echo", echoMsg{Message: "Hello!"}, nil)
 	wg.Wait()
 }
 

@@ -58,14 +58,14 @@ func (c *Client) Connect(addr string, debug bool) error {
 
 // SendRequest sends a JSON-RPC request throught the connection denoted by the connection ID with an auto generated request ID.
 // resHandler is called when a response is returned.
-func (c *Client) SendRequest(method string, params interface{}, resHandler func(ctx *ResCtx)) (reqID string, err error) {
+func (c *Client) SendRequest(method string, params interface{}, resHandler func(ctx *ResCtx) error) (reqID string, err error) {
 	c.lazyRegisterSender()
 	return c.sender.SendRequest("", method, params, resHandler)
 }
 
 // SendRequestArr sends a JSON-RPC request throught the connection denoted by the connection ID, with array params and auto generated request ID.
 // resHandler is called when a response is returned.
-func (c *Client) SendRequestArr(method string, resHandler func(ctx *ResCtx), params ...interface{}) (reqID string, err error) {
+func (c *Client) SendRequestArr(method string, resHandler func(ctx *ResCtx) error, params ...interface{}) (reqID string, err error) {
 	c.lazyRegisterSender()
 	return c.sender.SendRequestArr("", method, resHandler, params)
 }
@@ -97,6 +97,6 @@ func (c *Client) Close() error {
 // before they are delivered to the final user handler.
 func (c *Client) lazyRegisterSender() {
 	if c.sender.send == nil {
-		c.sender = NewSender(func(connID string, msg []byte) error { return c.client.Send(msg) })
+		c.sender = NewSender(&c.Middleware, func(connID string, msg []byte) error { return c.client.Send(msg) })
 	}
 }

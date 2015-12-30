@@ -14,16 +14,19 @@ type Sender struct {
 }
 
 // NewSender creates a new Sender middleware.
-func NewSender(send func(connID string, msg []byte) error) Sender {
-	return Sender{
+func NewSender(m *Middleware, send func(connID string, msg []byte) error) Sender {
+	s := Sender{
 		send:      send,
 		resRoutes: cmap.New(),
 	}
+
+	m.ResMiddleware(s.resMiddleware)
+	return s
 }
 
 // SendRequest sends a JSON-RPC request throught the connection denoted by the connection ID with an auto generated request ID.
 // resHandler is called when a response is returned.
-func (s *Sender) SendRequest(connID string, method string, params interface{}, resHandler func(ctx *ResCtx)) (reqID string, err error) {
+func (s *Sender) SendRequest(connID string, method string, params interface{}, resHandler func(ctx *ResCtx) error) (reqID string, err error) {
 	id, err := shortid.UUID()
 	if err != nil {
 		return "", err
@@ -40,7 +43,7 @@ func (s *Sender) SendRequest(connID string, method string, params interface{}, r
 
 // SendRequestArr sends a JSON-RPC request throught the connection denoted by the connection ID, with array params and auto generated request ID.
 // resHandler is called when a response is returned.
-func (s *Sender) SendRequestArr(connID string, method string, resHandler func(ctx *ResCtx), params ...interface{}) (reqID string, err error) {
+func (s *Sender) SendRequestArr(connID string, method string, resHandler func(ctx *ResCtx) error, params ...interface{}) (reqID string, err error) {
 	return s.SendRequest(connID, method, params, resHandler)
 }
 
@@ -71,8 +74,8 @@ func (s *Sender) sendMsg(connID string, msg interface{}) error {
 
 // ResMiddleware is a JSON-RPC incoming response handler middleware.
 func (s *Sender) resMiddleware(ctx *ResCtx) error {
-	if handler, ok := s.resRoutes.GetOk(ctx.id); ok {
-		err := handler.(func(ctx *ResCtx) error)(ctx)
+	if resHandler, ok := s.resRoutes.GetOk(ctx.id); ok {
+		err := resHandler.(func(ctx *ResCtx) error)(ctx)
 		s.resRoutes.Delete(ctx.id)
 		if err != nil {
 			return err

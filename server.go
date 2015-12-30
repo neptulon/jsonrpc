@@ -22,7 +22,7 @@ func NewServer(n *neptulon.Server) (*Server, error) {
 
 	s := Server{neptulon: n}
 	n.MiddlewareIn(s.Middleware.neptulonMiddleware)
-	s.Sender = NewSender(n.Send)
+	s.Sender = NewSender(&s.Middleware, n.Send)
 
 	return &s, nil
 }
