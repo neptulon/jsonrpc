@@ -55,5 +55,5 @@ func (mw *Middleware) neptulonMiddleware(ctx *neptulon.Ctx) error {
 	}
 
 	// not a JSON-RPC message so do nothing
-	return nil
+	return ctx.Next()
 }

@@ -39,7 +39,7 @@ func (r *Router) reqMiddleware(ctx *ReqCtx) error {
 		return handler(ctx)
 	}
 
-	return nil
+	return ctx.Next()
 }
 
 func (r *Router) notMiddleware(ctx *NotCtx) error {
@@ -47,5 +47,5 @@ func (r *Router) notMiddleware(ctx *NotCtx) error {
 		return handler(ctx)
 	}
 
-	return nil
+	return ctx.Next()
 }
