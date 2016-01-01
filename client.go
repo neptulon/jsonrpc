@@ -10,6 +10,8 @@ import (
 // Client is a Neptulon JSON-RPC client.
 type Client struct {
 	Middleware
+	Conn *neptulon.Conn
+
 	sender Sender
 	client *neptulon.Client // Inner Neptulon client.
 }
@@ -23,7 +25,10 @@ func NewClient(msgWG *sync.WaitGroup, disconnHandler func(client *neptulon.Clien
 
 // UseClient wraps an established Neptulon Client into a JSON-RPC Client.
 func UseClient(client *neptulon.Client) *Client {
-	c := Client{client: client}
+	c := Client{
+		Conn:   client.Conn,
+		client: client,
+	}
 	c.client.MiddlewareIn(c.Middleware.neptulonMiddleware)
 	c.sender = NewSender(&c.Middleware, func(connID string, msg []byte) error { return c.client.Send(msg) })
 	return &c
