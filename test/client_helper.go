@@ -22,12 +22,17 @@ type ClientHelper struct {
 func NewClientHelper(t *testing.T, addr string) *ClientHelper {
 	nepCH := test.NewClientHelper(t, addr)
 	c := jsonrpc.UseClient(nepCH.Client)
-	nepCH.Connect()
 	return &ClientHelper{
 		Client:  c,
 		nepCH:   nepCH,
 		testing: t,
 	}
+}
+
+// Connect connects to a server.
+func (ch *ClientHelper) Connect() *ClientHelper {
+	ch.nepCH.Connect()
+	return ch
 }
 
 // SendRequest sends a JSON-RPC request through the client connection with an auto generated request ID.

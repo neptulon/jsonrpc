@@ -18,7 +18,7 @@ func TestEcho(t *testing.T) {
 	rout := sh.GetRouter()
 	rout.Request("echo", middleware.Echo)
 
-	ch := sh.GetClientHelper()
+	ch := sh.GetClientHelper().Connect()
 	defer ch.Close()
 
 	ch.SendRequest("echo", echoMsg{Message: "Hello!"}, func(ctx *jsonrpc.ResCtx) error {
