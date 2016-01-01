@@ -13,7 +13,8 @@ type Client struct {
 	Conn *neptulon.Conn
 
 	sender Sender
-	client *neptulon.Client // Inner Neptulon client.
+	client *neptulon.Client // inner Neptulon client
+	router *Router
 }
 
 // NewClient creates a new Client object.
@@ -89,7 +90,26 @@ func (c *Client) SendResponse(id string, result interface{}, err *ResError) erro
 	return c.sender.SendResponse("", id, result, err)
 }
 
+// HandleRequest regiters a handler for incoming requests.
+func (c *Client) HandleRequest(route string, handler func(ctx *ReqCtx) error) {
+	c.lazyRegisterRouter()
+	c.router.Request(route, handler)
+}
+
+// HandleNotification regiters a handler for incoming notifications.
+func (c *Client) HandleNotification(route string, handler func(ctx *NotCtx) error) {
+	c.lazyRegisterRouter()
+	c.router.Notification(route, handler)
+}
+
 // Close closes a client connection.
 func (c *Client) Close() error {
 	return c.client.Close()
+}
+
+// Router middleware needs to be registered last for other middleware to be relevant.
+func (c *Client) lazyRegisterRouter() {
+	if c.router == nil {
+		c.router, _ = NewRouter(&c.Middleware)
+	}
 }
