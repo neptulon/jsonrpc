@@ -37,7 +37,7 @@ func newReqCtx(id, method string, params json.RawMessage, client *neptulon.Clien
 		return nil
 	})
 
-	return &ReqCtx{Client: UseClient(client), id: id, method: method, params: params, mw: mw}
+	return &ReqCtx{Client: UseClient(client), id: id, method: method, params: params, mw: mw, session: session}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
@@ -81,7 +81,7 @@ type NotCtx struct {
 }
 
 func newNotCtx(method string, params json.RawMessage, client *neptulon.Client, mw []func(ctx *NotCtx) error, session *cmap.CMap) *NotCtx {
-	return &NotCtx{Client: UseClient(client), method: method, params: params, mw: mw}
+	return &NotCtx{Client: UseClient(client), method: method, params: params, mw: mw, session: session}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
@@ -127,7 +127,7 @@ type ResCtx struct {
 }
 
 func newResCtx(id string, result json.RawMessage, client *neptulon.Client, mw []func(ctx *ResCtx) error, session *cmap.CMap) *ResCtx {
-	return &ResCtx{Client: UseClient(client), id: id, result: result, mw: mw}
+	return &ResCtx{Client: UseClient(client), id: id, result: result, mw: mw, session: session}
 }
 
 // Session is a data store for storing arbitrary data within this context to communicate with other middleware handling this message.
