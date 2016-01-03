@@ -119,7 +119,7 @@ type ResCtx struct {
 	id     string          // message ID
 	result json.RawMessage // result parameters
 
-	err *resError // response error (if any)
+	err *ResError // response error (if any)
 
 	mw      []func(ctx *ResCtx) error
 	mwIndex int
