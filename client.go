@@ -110,6 +110,6 @@ func (c *Client) Close() error {
 // Router middleware needs to be registered last for other middleware to be relevant.
 func (c *Client) lazyRegisterRouter() {
 	if c.router == nil {
-		c.router, _ = NewRouter(&c.Middleware)
+		c.router, _ = NewRouter(c)
 	}
 }

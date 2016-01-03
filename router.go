@@ -9,7 +9,7 @@ type Router struct {
 }
 
 // NewRouter creates a JSON-RPC router instance and registers it as a Neptulon JSON-RPC middleware.
-func NewRouter(m *Middleware) (*Router, error) {
+func NewRouter(m MiddlewareHandler) (*Router, error) {
 	if m == nil {
 		return nil, errors.New("given JSON-RPC Middleware instance is nil")
 	}

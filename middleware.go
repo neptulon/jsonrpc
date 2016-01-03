@@ -7,6 +7,13 @@ import (
 	"github.com/neptulon/neptulon"
 )
 
+// MiddlewareHandler defines the middleware registrar functions for a middleware stack.
+type MiddlewareHandler interface {
+	ReqMiddleware(reqMiddleware ...func(ctx *ReqCtx) error)
+	NotMiddleware(notMiddleware ...func(ctx *NotCtx) error)
+	ResMiddleware(resMiddleware ...func(ctx *ResCtx) error)
+}
+
 // Middleware is a Neptulon middleware for handling JSON-RPC protocol and relevant JSON-RPC middleware.
 type Middleware struct {
 	reqMiddleware []func(ctx *ReqCtx) error
